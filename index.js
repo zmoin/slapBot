@@ -13,11 +13,11 @@ client.on('message', (receivedMessage) => {
 })
 
 function slapCommand(receivedMessage) {
-    // Remove the leading exclamation mark
-    let fullCommand = receivedMessage.content.substr(1)
+    // Remove the leading exclamation mark and the space
+    let fullCommand = receivedMessage.content.substr(2)
         // Split the message up in to pieces for each space/simulate an array
     let splitCommand = fullCommand.split(" ")
-        // The first word directly after the exclamation is the command 
+        // The first word directly after the exclamation is the user to slap 
     let userName = splitCommand[0]
         // All other words are arguments/parameters/options for the command
     let arguments = splitCommand.slice(1)

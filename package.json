@@ -4,9 +4,15 @@
   "description": "A bot to slap",
   "main": "index.js",
   "dependencies": {
-    "discord.js": "^11.4.2"
+    "chance": "^1.0.18",
+    "discord.js": "^11.4.2",
+    "dotenv": "^7.0.0",
+    "lowdb": "^1.0.0",
+    "winston": "^3.2.1"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "nodemon": "^1.18.10"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

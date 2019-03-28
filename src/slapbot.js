@@ -1,12 +1,10 @@
+require('dotenv').config()
 const Discord = require('discord.js');
-const logger = require('winston');
 const Chance = require('chance');
-
-logger.remove(logger.transports.Console);
-logger.add(logger.transports.Console, {
-    colorize: true
-});
-logger.level = 'debug';
+const loadJsonFile = require('load-json-file');
+let logger = require('winston');
+let whitelist = loadJsonFile.sync('./config/whitelist.json');
+let blacklist = loadJsonFile.sync('./config/blacklist.json');
 
 /**
  * Slapbot class
@@ -16,26 +14,48 @@ class Slapbot {
 
     /**
      * @constructor
-     * @param {string} token - Token to use to connect
+     * @param {object} options - Options objects to configure the bot
+     * @param {string} options.token - Token to use to connect
+     * @param {boolean=} options.whitelist - Whether to use the whitelist
+     * @param {boolean=} options.blacklist - Whether to use the blacklist
      */
-    constructor(token) {
-        this.token = token;
-        this.chance = new Chance();
-        this.client = new Discord.Client();
+    constructor(options) {
+        if (!options.token) {
+            return;
+        }
 
-        this.client.on('ready', function() {
+        this.token = options.token;
+        this.whitelistEnabled = options.whitelist || false;
+        this.blacklistEnabled = options.blacklist || false;
+
+        this.chance = new Chance();
+        let client = new Discord.Client();
+        this.client = client;
+
+        this.client.on('ready', () => {
             logger.info('Connected');
-            logger.info('Logged in as: ' + bot.username + ' - (' + bot.id + ')');
+            logger.info(`Logged in as: ${client.user.username} - (${client.user.id})`);
         });
 
         this.client.on('message', (receivedMessage) => {
             // Prevent bot from responding to its own messages
-            if (receivedMessage.author == client.user) {
+            if (receivedMessage.author.id == client.user.id) {
                 return;
             }
+            // Whitelist to prevent non whitelisted users using commands.
+            if (this.whitelistEnabled && !whitelist.includes(client.user.id)) {
+                return;
+            }
+            // Blacklist to prevent blacklisted users using commands.
+            if (this.blacklistEnabled && blacklist.includes(client.user.id)) {
+                return;
+            }
+
             //if the message starts with a ! then pass it on the the function
             if (receivedMessage.content.startsWith("!")) {
-                this.slapCommand(receivedMessage);
+                // Remove the leading exclamation mark and the space into new member
+                receivedMessage.command = receivedMessage.content.substr(1);
+                this.commandSwitch(receivedMessage);
             }
         });
     }
@@ -57,24 +77,44 @@ class Slapbot {
     }
 
     /**
+     * Switch between what command to run based in the first param after !
+     * 
+     * @param {*} receivedMessage 
+     */
+    commandSwitch(receivedMessage) {
+        // Get command to use 
+        let commandKey = receivedMessage.command.split(" ")[0];
+        // Remove the command key from the string
+        receivedMessage.command = receivedMessage.command.substr(commandKey.length + 1);
+
+        // Call the correct command
+        switch (commandKey) {
+            case 'slap':
+                this.slapCommand(receivedMessage);
+                break;
+            default:
+                // Unknown command
+                break;
+        }
+    }
+
+    /**
      * React to a slap command
      * @param {*} receivedMessage - the received message to respond to.
      */
     slapCommand(receivedMessage) {
-        // Remove the leading exclamation mark and the space
-        let fullCommand = receivedMessage.content.substr(2);
         // Split the message up in to pieces for each space/simulate an array
-        let splitCommand = fullCommand.split(" ");
+        let splitCommand = receivedMessage.command.split(" ");
         // The first word directly after the exclamation is the user to slap 
         let userName = splitCommand[0];
         // All other words are arguments/parameters/options for the command
-        let arguments = splitCommand.slice(1);
+        let args = splitCommand.slice(1);
 
-        if (arguments.length > 0)
-            receivedMessage.channel.send("slaps " + userName + " with a " + arguments);
+        if (args.length > 0)
+            receivedMessage.channel.send(`slaps ${userName} with a ${args}`);
         else
-            receivedMessage.channel.send("slaps " + userName + " with a trout");
+            receivedMessage.channel.send(`slaps ${userName} with a trout`);
     }
 }
 
-modules.exports = Slapbot;
+module.exports = Slapbot;

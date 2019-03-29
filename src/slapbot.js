@@ -42,6 +42,8 @@ class Slapbot {
             if (receivedMessage.author.id == client.user.id) {
                 return;
             }
+            //get the author of the message
+            let userSent = receivedMessage.author.toString();
             // Whitelist to prevent non whitelisted users using commands.
             if (this.whitelistEnabled && !whitelist.includes(client.user.id)) {
                 return;
@@ -51,11 +53,12 @@ class Slapbot {
                 return;
             }
 
-            //if the message starts with a ! then pass it on the the function
-            if (receivedMessage.content.startsWith("/")) {
-                // Remove the leading exclamation mark and the space into new member
+            //if the message starts with a . then pass it on the the function
+            if (receivedMessage.content.startsWith(".")) {
+                //get the author of the message
+                // Remove the leading period and the space into new member
                 receivedMessage.command = receivedMessage.content.substr(1);
-                this.commandSwitch(receivedMessage);
+                this.commandSwitch(receivedMessage, userSent);
             }
         });
     }
@@ -72,7 +75,7 @@ class Slapbot {
      * Stop the bot
      */
     stop() {
-        logger.info('Slapbot stoping');
+        logger.info('Slapbot stopping');
         this.client.destroy();
     }
 
@@ -81,7 +84,7 @@ class Slapbot {
      * 
      * @param {*} receivedMessage 
      */
-    commandSwitch(receivedMessage) {
+    commandSwitch(receivedMessage, userSent) {
         // Get command to use 
         let commandKey = receivedMessage.command.split(" ")[0];
         // Remove the command key from the string
@@ -90,7 +93,7 @@ class Slapbot {
         // Call the correct command
         switch (commandKey) {
             case 'slap':
-                this.slapCommand(receivedMessage);
+                this.slapCommand(receivedMessage, userSent);
                 break;
             default:
                 // Unknown command
@@ -102,20 +105,21 @@ class Slapbot {
      * React to a slap command
      * @param {*} receivedMessage - the received message to respond to.
      */
-    slapCommand(receivedMessage) {
+    slapCommand(receivedMessage, userSent) {
         // Split the message up in to pieces for each space/simulate an array
         let splitCommand = receivedMessage.command.split(" ");
-        // The first word directly after the exclamation is the user to slap 
+        // The first word directly after slap is the user to slap 
         let userName = splitCommand[0];
         // All other words are arguments/parameters/options for the command
         let args = splitCommand.slice(1);
         let argString = args.join(" ");
-
         if (args.length > 0) {
-            receivedMessage.channel.send(` slaps ${userName} with a ${argString}`);
+            receivedMessage.channel.send(userSent + ` slaps ${userName} with a ${argString}`);
         } else
-            receivedMessage.channel.send(`slaps ${userName} with a trout`);
+            receivedMessage.channel.send(userSent + ` slaps ${userName} with a trout`);
     }
 }
+
+
 
 module.exports = Slapbot;

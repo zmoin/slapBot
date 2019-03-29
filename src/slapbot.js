@@ -52,7 +52,7 @@ class Slapbot {
             }
 
             //if the message starts with a ! then pass it on the the function
-            if (receivedMessage.content.startsWith("!")) {
+            if (receivedMessage.content.startsWith("/")) {
                 // Remove the leading exclamation mark and the space into new member
                 receivedMessage.command = receivedMessage.content.substr(1);
                 this.commandSwitch(receivedMessage);
@@ -110,9 +110,9 @@ class Slapbot {
         // All other words are arguments/parameters/options for the command
         let args = splitCommand.slice(1);
 
-        if (args.length > 0)
-            receivedMessage.channel.send(`slaps ${userName} with a ${args}`);
-        else
+        if (args.length > 0) {
+            receivedMessage.channel.send(` slaps ${userName} with a ${args}`);
+        } else
             receivedMessage.channel.send(`slaps ${userName} with a trout`);
     }
 }

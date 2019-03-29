@@ -1,0 +1,36 @@
+{
+    "name": "slapbot",
+    "version": "0.0.1",
+    "description": "A bot to slap",
+    "main": "index.js",
+    "dependencies": {
+        "chance": "^1.0.18",
+        "discord.js": "^11.4.2",
+        "dotenv": "^7.0.0",
+        "load-json-file": "^5.2.0",
+        "lowdb": "^1.0.0",
+        "winston": "^3.2.1"
+    },
+    "devDependencies": {
+        "nodemon": "^1.18.10"
+    },
+    "scripts": {
+        "start": "node index.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/zmoin/slapBot.git"
+    },
+    "keywords": [
+        "slap",
+        "chatbot",
+        "discord",
+        "discordbot"
+    ],
+    "author": "Zarrin",
+    "bugs": {
+        "url": "https://github.com/zmoin/slapBot/issues"
+    },
+    "homepage": "https://github.com/zmoin/slapBot#readme"
+}

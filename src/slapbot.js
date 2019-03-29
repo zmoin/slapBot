@@ -109,9 +109,10 @@ class Slapbot {
         let userName = splitCommand[0];
         // All other words are arguments/parameters/options for the command
         let args = splitCommand.slice(1);
+        let argString = args.join(" ");
 
         if (args.length > 0) {
-            receivedMessage.channel.send(` slaps ${userName} with a ${args}`);
+            receivedMessage.channel.send(` slaps ${userName} with a ${argString}`);
         } else
             receivedMessage.channel.send(`slaps ${userName} with a trout`);
     }

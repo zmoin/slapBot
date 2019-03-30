@@ -159,7 +159,8 @@ class Slapbot {
 
         //if the person is not Fshy, then the bot is not going to do anything
         if (this.checkPermission('nuker', receivedMessage.author.id)) {
-            receivedMessage.channel.send(userSent + ` nukes ${userName}`);
+            receivedMessage.channel.send(userSent + ` nukes ${userName}`).then((sentMessage) =>
+                sentMessage.react(this.chance.pickone(['💣', '🔥', '💥'])));
         }
     }
 

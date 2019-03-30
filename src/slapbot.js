@@ -5,6 +5,7 @@ const loadJsonFile = require('load-json-file');
 let logger = require('winston');
 let whitelist = loadJsonFile.sync('./config/whitelist.json');
 let blacklist = loadJsonFile.sync('./config/blacklist.json');
+let permissions = loadJsonFile.sync('./config/permissions.json');
 
 /**
  * Slapbot class
@@ -95,6 +96,9 @@ class Slapbot {
             case 'slap':
                 this.slapCommand(receivedMessage, userSent);
                 break;
+            case 'stop':
+                this.stopCommand(receivedMessage);
+                break;
             default:
                 // Unknown command
                 break;
@@ -118,8 +122,28 @@ class Slapbot {
         } else
             receivedMessage.channel.send(userSent + ` slaps ${userName} with a trout`);
     }
+
+    /**
+     * React to a stop command
+     * Ensure admin is using the command, then destroy client
+     * @param {*} receivedMessage - the received messaged to respond to.
+     */
+    stopCommand(receivedMessage) {
+        if (this.checkPermission("admin", receivedMessage.author.id)) {
+            this.stop();
+        }
+    }
+
+    /**
+     * Checks if a user id is listed for a given permission
+     * @param {string} permission - the permission to check for
+     * @param {string} id - ID of user to check for permission
+     */
+    checkPermission(permission, id) {
+        if (permissions.hasOwnProperty(permission)) {
+            return permissions[permission].includes(id);
+        }
+    }
 }
-
-
 
 module.exports = Slapbot;

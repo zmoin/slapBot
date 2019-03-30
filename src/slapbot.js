@@ -99,6 +99,12 @@ class Slapbot {
             case 'stop':
                 this.stopCommand(receivedMessage);
                 break;
+            case 'whitelist':
+                this.toggleWhitelist(receivedMessage);
+                break;
+            case 'blacklist':
+                this.toggleBlacklist(receivedMessage);
+                break;
             default:
                 // Unknown command
                 break;
@@ -126,7 +132,7 @@ class Slapbot {
     /**
      * React to a stop command
      * Ensure admin is using the command, then destroy client
-     * @param {*} receivedMessage - the received messaged to respond to.
+     * @param {*} receivedMessage - the received message to respond to.
      */
     stopCommand(receivedMessage) {
         if (this.checkPermission("admin", receivedMessage.author.id)) {
@@ -142,6 +148,28 @@ class Slapbot {
     checkPermission(permission, id) {
         if (permissions.hasOwnProperty(permission)) {
             return permissions[permission].includes(id);
+        }
+    }
+
+    /**
+     * Toggles whitelist mode
+     * @param {*} receivedMessage - The received message to respond to
+     */
+    toggleWhitelist(receivedMessage) {
+        if (this.checkPermission("admin", receivedMessage.author.id)) {
+            this.whitelistEnabled = !this.whitelistEnabled;
+            receivedMessage.channel.send(`Whitelist ${this.blacklistEnabled ? "enabled" : "disabled"}`);
+        }
+    }
+
+    /**
+     * Toggles blacklist mode
+     * @param {*} receivedMessage - The received message to respond to
+     */
+    toggleBlacklist(receivedMessage) {
+        if (this.checkPermission("admin", receivedMessage.author.id)) {
+            this.blacklistEnabled = !this.blacklistEnabled;
+            receivedMessage.channel.send(`Blacklist ${this.blacklistEnabled ? "enabled" : "disabled"}`)
         }
     }
 }

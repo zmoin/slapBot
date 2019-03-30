@@ -45,11 +45,11 @@ class Slapbot {
             //get the author of the message
             let userSent = receivedMessage.author.toString();
             // Whitelist to prevent non whitelisted users using commands.
-            if (this.whitelistEnabled && !whitelist.includes(client.user.id)) {
+            if (this.whitelistEnabled && !whitelist.includes(receivedMessage.author.id)) {
                 return;
             }
             // Blacklist to prevent blacklisted users using commands.
-            if (this.blacklistEnabled && blacklist.includes(client.user.id)) {
+            if (this.blacklistEnabled && blacklist.includes(receivedMessage.author.id)) {
                 return;
             }
 

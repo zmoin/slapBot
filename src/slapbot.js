@@ -2,7 +2,6 @@ require('dotenv').config()
 const Discord = require('discord.js')
 const Chance = require('chance')
 const loadJsonFile = require('load-json-file')
-    //const Mention = require('../node_modules/discord.js/src/structures/MessageMentions.js')
 let logger = require('winston')
 let whitelist = loadJsonFile.sync('./config/whitelist.json')
 let blacklist = loadJsonFile.sync('./config/blacklist.json')
@@ -118,8 +117,9 @@ class Slapbot {
     slapCommand(receivedMessage) {
         // Split the message up in to pieces for each space/simulate an array
         let splitCommand = receivedMessage.command.split(' ')
-            // The first word directly after slap is the user to slap 
-            // All other words are arguments/parameters/options for the command
+            // TODO Check The first word directly after slap is the user to slap
+
+        // All other words are arguments/parameters/options for the command
         let args = splitCommand.slice(1)
         let argString = args.join(' ')
             //if there are no users mentioned then return

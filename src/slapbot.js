@@ -44,9 +44,8 @@ class Slapbot {
             if (receivedMessage.author.id == client.user.id) {
                 return
             }
-            // get the author of the message
-            let userSent = receivedMessage.author.toString()
-                // Whitelist to prevent non whitelisted users using commands.
+
+            // Whitelist to prevent non whitelisted users using commands.
             if (this.whitelistEnabled && !whitelist.includes(receivedMessage.author.id)) {
                 return
             }
@@ -60,7 +59,7 @@ class Slapbot {
                 // get the author of the message
                 // Remove the leading period and the space into new member
                 receivedMessage.command = receivedMessage.content.substr(1)
-                this.commandSwitch(receivedMessage, userSent)
+                this.commandSwitch(receivedMessage)
             }
         })
     }
@@ -86,7 +85,7 @@ class Slapbot {
      * 
      * @param {*} receivedMessage 
      */
-    commandSwitch(receivedMessage, userSent) {
+    commandSwitch(receivedMessage) {
         // Get command to use 
         let commandKey = receivedMessage.command.split(' ')[0]
             // Remove the command key from the string
@@ -96,11 +95,11 @@ class Slapbot {
         switch (commandKey) {
             //available to everyone in the server the bot is in
             case 'slap':
-                this.slapCommand(receivedMessage, userSent)
+                this.slapCommand(receivedMessage)
                 break
             case 'nuke':
                 //could just check for permission here
-                this.nukeCommand(receivedMessage, userSent)
+                this.nukeCommand(receivedMessage)
                 break
                 //only available to the admin
             case 'stop':
@@ -114,23 +113,23 @@ class Slapbot {
 
     /**
      * React to a slap command
-     * @param {*} receivedMessage - the received message to respond to.
-     * @param {*} userSent - the user who sent the request for the slap
+     * @param {*} receivedMessage - the received message to respond to
      */
-    slapCommand(receivedMessage, userSent) {
+    slapCommand(receivedMessage) {
         // Split the message up in to pieces for each space/simulate an array
         let splitCommand = receivedMessage.command.split(' ')
             // The first word directly after slap is the user to slap 
-        let userName = splitCommand[0]
             // All other words are arguments/parameters/options for the command
         let args = splitCommand.slice(1)
         let argString = args.join(' ')
-        if (args.length > 0) {
-
-            receivedMessage.channel.send(userSent + ` slaps ${userName} with a ${argString}`).then((sentMessage) =>
+            //if there are no users mentioned then return
+        if (!receivedMessage.mentions.users.first())
+            return
+        else if (args.length > 0) {
+            receivedMessage.channel.send(receivedMessage.author.toString() + ` slaps ` + receivedMessage.mentions.members.first() + ` with a ${argString}`).then((sentMessage) =>
                 sentMessage.react(this.generateEmoji())).then(console.log("Reacted")).catch(console.error);
         } else
-            receivedMessage.channel.send(userSent + ` slaps ${userName}`).then((sentMessage) =>
+            receivedMessage.channel.send(receivedMessage.author.toString() + ` slaps ` + receivedMessage.mentions.members.first()).then((sentMessage) =>
                 sentMessage.react(this.generateEmoji())).then(console.log("Reacted")).catch(console.error);
     }
 
@@ -151,20 +150,21 @@ class Slapbot {
     }
 
     /**
-     * React to a nuke command
+     * React to a nuke command ***specifically requested*
      * @param {*} receivedMessage - the received message to respond to.
-     * @param {*} userSent - the user who sent the message, specifically Fshy
      */
-    nukeCommand(receivedMessage, userSent) {
+    nukeCommand(receivedMessage) {
         // Split the message up in to pieces for each space/simulate an array
         let splitCommand = receivedMessage.command.split(' ')
-            // The first word directly after slap is the user to slap 
-        let userName = splitCommand[0]
+
+        //if there are no users mentioned, then return withot doing anything
+        if (!receivedMessage.mentions.users.first())
+            return
 
         //if the person is not "nuker", then the bot is not going to do anything
         if (this.checkPermission('nuker', receivedMessage.author.id)) {
             //other the bot will send the message to the channel and also react using one of the 3 emojis
-            receivedMessage.channel.send(userSent + ` nukes ${userName}`).then((sentMessage) =>
+            receivedMessage.channel.send(receivedMessage.author.toString() + ` nukes ` + receivedMessage.mentions.members.first()).then((sentMessage) =>
                 sentMessage.react(this.chance.pickone(['💣', '🔥', '💥']))).then(console.log("Reacted")).catch(console.error);
         }
     }

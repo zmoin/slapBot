@@ -2,6 +2,7 @@ require('dotenv').config()
 const Discord = require('discord.js')
 const Chance = require('chance')
 const loadJsonFile = require('load-json-file')
+    //const Mention = require('../node_modules/discord.js/src/structures/MessageMentions.js')
 let logger = require('winston')
 let whitelist = loadJsonFile.sync('./config/whitelist.json')
 let blacklist = loadJsonFile.sync('./config/blacklist.json')
@@ -125,11 +126,12 @@ class Slapbot {
         let args = splitCommand.slice(1)
         let argString = args.join(' ')
         if (args.length > 0) {
+
             receivedMessage.channel.send(userSent + ` slaps ${userName} with a ${argString}`).then((sentMessage) =>
-                sentMessage.react(this.generateEmoji()));
+                sentMessage.react(this.generateEmoji())).then(console.log("Reacted")).catch(console.error);
         } else
             receivedMessage.channel.send(userSent + ` slaps ${userName}`).then((sentMessage) =>
-                sentMessage.react(this.generateEmoji()));
+                sentMessage.react(this.generateEmoji())).then(console.log("Reacted")).catch(console.error);
     }
 
     /**
@@ -163,7 +165,7 @@ class Slapbot {
         if (this.checkPermission('nuker', receivedMessage.author.id)) {
             //other the bot will send the message to the channel and also react using one of the 3 emojis
             receivedMessage.channel.send(userSent + ` nukes ${userName}`).then((sentMessage) =>
-                sentMessage.react(this.chance.pickone(['💣', '🔥', '💥'])));
+                sentMessage.react(this.chance.pickone(['💣', '🔥', '💥']))).then(console.log("Reacted")).catch(console.error);
         }
     }
 

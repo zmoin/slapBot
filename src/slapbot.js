@@ -134,6 +134,8 @@ class Slapbot {
 
     /**
      * Generate a random Emoji
+     * For now it is only using chancejs to pick one from the given array
+     * until a better method is found
      * @param none
      */
     generateEmoji() {
@@ -157,8 +159,9 @@ class Slapbot {
             // The first word directly after slap is the user to slap 
         let userName = splitCommand[0]
 
-        //if the person is not Fshy, then the bot is not going to do anything
+        //if the person is not "nuker", then the bot is not going to do anything
         if (this.checkPermission('nuker', receivedMessage.author.id)) {
+            //other the bot will send the message to the channel and also react using one of the 3 emojis
             receivedMessage.channel.send(userSent + ` nukes ${userName}`).then((sentMessage) =>
                 sentMessage.react(this.chance.pickone(['💣', '🔥', '💥'])));
         }

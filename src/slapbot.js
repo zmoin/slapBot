@@ -123,20 +123,36 @@ class Slapbot {
     slapCommand(receivedMessage) {
         // Split the message up in to pieces for each space/simulate an array
         let splitCommand = receivedMessage.command.split(' ')
-        // TODO Check The first word directly after slap is the user to slap
+
+        // Check if the first word after slap is the user to slap
+        let userToSlap = splitCommand[0];
+        if (!this.isValidMention(userToSlap, receivedMessage.guild)) return;
 
         // All other words are arguments/parameters/options for the command
         let args = splitCommand.slice(1)
         let argString = args.join(' ')
-        //if there are no users mentioned then return
-        if (!receivedMessage.mentions.users.first())
-            return
-        else if (args.length > 0) {
-            receivedMessage.channel.send(receivedMessage.author.toString() + ` slaps ` + receivedMessage.mentions.members.first() + ` with a ${argString}`).then((sentMessage) =>
+
+        if (args.length > 0) {
+            receivedMessage.channel.send(receivedMessage.author.toString() + ` slaps ` + userToSlap + ` with a ${argString}`).then((sentMessage) =>
                 sentMessage.react(this.generateEmoji())).then(console.log("Reacted")).catch(console.error);
         } else
-            receivedMessage.channel.send(receivedMessage.author.toString() + ` slaps ` + receivedMessage.mentions.members.first()).then((sentMessage) =>
+            receivedMessage.channel.send(receivedMessage.author.toString() + ` slaps ` + userToSlap).then((sentMessage) =>
                 sentMessage.react(this.generateEmoji())).then(console.log("Reacted")).catch(console.error);
+    }
+
+    /**
+     * Check if a string is a valid mention for a given guild
+     * @param {String} stringToCheck - String to check
+     * @param {Guild} guild - Guild/Server to check the mention against
+     */
+    isValidMention(stringToCheck, guild) {
+
+        if (!/^<@\d+>$/.test(stringToCheck)) return false;
+
+        let userId = stringToCheck.substr(2, stringToCheck.length - 3);
+        if (guild.members.keyArray().includes(userId)) return true;
+
+        return false;
     }
 
     /**

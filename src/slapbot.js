@@ -87,7 +87,7 @@ class Slapbot {
     commandSwitch(receivedMessage) {
         // Get command to use 
         let commandKey = receivedMessage.command.split(' ')[0]
-            // Remove the command key from the string
+        // Remove the command key from the string
         receivedMessage.command = receivedMessage.command.substr(commandKey.length + 1)
 
         // Call the correct command
@@ -100,10 +100,16 @@ class Slapbot {
                 //could just check for permission here
                 this.nukeCommand(receivedMessage)
                 break
-                //only available to the admin
+            //only available to the admin
             case 'stop':
-                this.stopCommand(receivedMessage)
-                break
+                this.stopCommand(receivedMessage);
+                break;
+            case 'whitelist':
+                this.toggleWhitelist(receivedMessage);
+                break;
+            case 'blacklist':
+                this.toggleBlacklist(receivedMessage);
+                break;
             default:
                 // Unknown command
                 break
@@ -117,20 +123,36 @@ class Slapbot {
     slapCommand(receivedMessage) {
         // Split the message up in to pieces for each space/simulate an array
         let splitCommand = receivedMessage.command.split(' ')
-            // TODO Check The first word directly after slap is the user to slap
+
+        // Check if the first word after slap is the user to slap
+        let userToSlap = splitCommand[0];
+        if (!this.isValidMention(userToSlap, receivedMessage.guild)) return;
 
         // All other words are arguments/parameters/options for the command
         let args = splitCommand.slice(1)
         let argString = args.join(' ')
-            //if there are no users mentioned then return
-        if (!receivedMessage.mentions.users.first())
-            return
-        else if (args.length > 0) {
-            receivedMessage.channel.send(receivedMessage.author.toString() + ` slaps ` + receivedMessage.mentions.members.first() + ` with a ${argString}`).then((sentMessage) =>
+
+        if (args.length > 0) {
+            receivedMessage.channel.send(receivedMessage.author.toString() + ` slaps ` + userToSlap + ` with a ${argString}`).then((sentMessage) =>
                 sentMessage.react(this.generateEmoji())).then(console.log("Reacted")).catch(console.error);
         } else
-            receivedMessage.channel.send(receivedMessage.author.toString() + ` slaps ` + receivedMessage.mentions.members.first()).then((sentMessage) =>
+            receivedMessage.channel.send(receivedMessage.author.toString() + ` slaps ` + userToSlap).then((sentMessage) =>
                 sentMessage.react(this.generateEmoji())).then(console.log("Reacted")).catch(console.error);
+    }
+
+    /**
+     * Check if a string is a valid mention for a given guild
+     * @param {String} stringToCheck - String to check
+     * @param {Guild} guild - Guild/Server to check the mention against
+     */
+    isValidMention(stringToCheck, guild) {
+
+        if (!/^<@\d+>$/.test(stringToCheck)) return false;
+
+        let userId = stringToCheck.substr(2, stringToCheck.length - 3);
+        if (guild.members.keyArray().includes(userId)) return true;
+
+        return false;
     }
 
     /**
@@ -172,7 +194,7 @@ class Slapbot {
     /**
      * React to a stop command
      * Ensure admin is using the command, then destroy client
-     * @param {*} receivedMessage - the, received messaged to respond to.
+     * @param {*} receivedMessage - the received message to respond to.
      */
     stopCommand(receivedMessage) {
         if (this.checkPermission('admin', receivedMessage.author.id)) {
@@ -188,6 +210,28 @@ class Slapbot {
     checkPermission(permission, id) {
         if (permissions.hasOwnProperty(permission)) {
             return permissions[permission].includes(id)
+        }
+    }
+
+    /**
+     * Toggles whitelist mode
+     * @param {*} receivedMessage - The received message to respond to
+     */
+    toggleWhitelist(receivedMessage) {
+        if (this.checkPermission("admin", receivedMessage.author.id)) {
+            this.whitelistEnabled = !this.whitelistEnabled;
+            receivedMessage.channel.send(`Whitelist ${this.blacklistEnabled ? "enabled" : "disabled"}`);
+        }
+    }
+
+    /**
+     * Toggles blacklist mode
+     * @param {*} receivedMessage - The received message to respond to
+     */
+    toggleBlacklist(receivedMessage) {
+        if (this.checkPermission("admin", receivedMessage.author.id)) {
+            this.blacklistEnabled = !this.blacklistEnabled;
+            receivedMessage.channel.send(`Blacklist ${this.blacklistEnabled ? "enabled" : "disabled"}`)
         }
     }
 }

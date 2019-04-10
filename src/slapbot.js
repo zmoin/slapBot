@@ -45,11 +45,17 @@ class Slapbot {
             }
 
             // Whitelist to prevent non whitelisted users using commands.
-            if (this.whitelistEnabled && !whitelist.includes(receivedMessage.author.id)) {
+            // Also ensure admins bypass whitelist
+            if (this.whitelistEnabled &&
+                !this.checkPermission("admin", receivedMessage.author.id) &&
+                !whitelist.includes(receivedMessage.author.id)) {
                 return
             }
             // Blacklist to prevent blacklisted users using commands.
-            if (this.blacklistEnabled && blacklist.includes(receivedMessage.author.id)) {
+            // Also ensure admins bypass blacklist
+            if (this.blacklistEnabled &&
+                !this.checkPermission("admin", receivedMessage.author.id) &&
+                blacklist.includes(receivedMessage.author.id)) {
                 return
             }
 

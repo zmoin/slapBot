@@ -40,6 +40,7 @@ class Slapbot {
 
         this.client.on('message', (receivedMessage) => {
             // Prevent bot from responding to its own messages
+
             if (receivedMessage.author.id == client.user.id) {
                 return
             }
@@ -107,6 +108,9 @@ class Slapbot {
                 this.nukeCommand(receivedMessage)
                 break
                 //only available to the admin
+            case 'convert':
+                this.convertCommand(receivedMessage);
+                break;
             case 'stop':
                 this.stopCommand(receivedMessage);
                 break;
@@ -195,6 +199,72 @@ class Slapbot {
             receivedMessage.channel.send(receivedMessage.author.toString() + ` nukes ` + receivedMessage.mentions.members.first()).then((sentMessage) =>
                 sentMessage.react(this.chance.pickone(['💣', '🔥', '💥']))).then(console.log("Reacted")).catch(console.error);
         }
+    }
+
+    /**
+     * Used to convert single digits (and -) into emoji representation
+     * @param {String} digit - string containing a single digit 0-9 or negative sign
+     */
+    digitToEmoji(digit) {
+        if (digit === '-') return '➖';
+        let vals = ['0⃣', '1⃣', '2⃣', '3⃣', '4⃣', '5⃣', '6⃣', '7⃣', '8⃣', '9⃣'];
+        return vals[Number(digit)];
+    }
+
+    /**
+     * Converts temperatures between celsius and fahrenheit
+     * Expects single command argument, the temperature to convert with associated unit
+     * @param {*} receivedMessage 
+     */
+    convertCommand(receivedMessage) {
+        let command = receivedMessage.command;
+        let outEmojis = [];
+        let inTemp = parseFloat(command.substr(0, command.length - 1));
+        let unit = command.substr(command.length - 1, 1).toLowerCase();
+
+        if (inTemp !== NaN && (unit === "c" || unit === "f")) {
+
+            let outTemp;
+            if (unit === "c") {
+                //C to F
+                outTemp = Math.floor((inTemp * 9 / 5) + 32).toString();
+            } else {
+                //F to C
+                outTemp = Math.floor((inTemp - 32) * 5 / 9).toString();
+            }
+
+            if (outTemp === "100") {
+                outEmojis.push('💯');
+            } else {
+                //Convert each digit to an emoji and push to array to add as reaction later
+                for (var i = 0; i < outTemp.length; i++) {
+                    let toAdd = this.digitToEmoji(outTemp[i]);
+                    //Digits need to be all unique. If not, just send the value as a fallback
+                    if (outEmojis.includes(toAdd)) {
+                        receivedMessage.channel.send(outTemp + 'F');
+                        return;
+                    }
+                    outEmojis.push(toAdd);
+                }
+            }
+
+            outEmojis.push(unit === "c" ? '🇫' : '🇨');
+        }
+
+        this.reactSequence(receivedMessage, outEmojis);
+    }
+
+    /**
+     * Add a list of emojis as reactions to a message in order
+     * @param {*} message - Reference to message to add reactions to
+     * @param {*} emojiArr - Array of emojis to add as reactions (need to be unique to work properly)
+     */
+    async reactSequence(message, emojiArr) {
+        try {
+            for (var i = 0; i < emojiArr.length; i++) {
+                await message.react(emojiArr[i]);
+            }
+        } catch (e) {}
     }
 
     /**

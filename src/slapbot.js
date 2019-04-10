@@ -87,7 +87,7 @@ class Slapbot {
     commandSwitch(receivedMessage) {
         // Get command to use 
         let commandKey = receivedMessage.command.split(' ')[0]
-            // Remove the command key from the string
+        // Remove the command key from the string
         receivedMessage.command = receivedMessage.command.substr(commandKey.length + 1)
 
         // Call the correct command
@@ -147,7 +147,7 @@ class Slapbot {
      */
     isValidMention(stringToCheck, guild) {
 
-        if (!/^<@\d+>$/.test(stringToCheck)) return false;
+        if (!/^<@[!&]?\d+>$/.test(stringToCheck)) return false;
 
         let userId = stringToCheck.substr(2, stringToCheck.length - 3);
         if (guild.members.keyArray().includes(userId)) return true;

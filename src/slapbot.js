@@ -217,42 +217,133 @@ class Slapbot {
      * @param {*} receivedMessage 
      */
     convertCommand(receivedMessage) {
-        let command = receivedMessage.command;
-        let outEmojis = [];
-        let inTemp = parseFloat(command.substr(0, command.length - 1));
-        let unit = command.substr(command.length - 1, 1).toLowerCase();
+        let splitCommand = receivedMessage.command.split(' ');
+        if (splitCommand.length !== 2) return;
+        let output;
+        let inValue = parseFloat(splitCommand[0]);
+        let unit = splitCommand[1].toLowerCase();
 
-        if (inTemp !== NaN && (unit === "c" || unit === "f")) {
-
-            let outTemp;
-            if (unit === "c") {
-                //C to F
-                outTemp = Math.floor((inTemp * 9 / 5) + 32).toString();
-            } else {
-                //F to C
-                outTemp = Math.floor((inTemp - 32) * 5 / 9).toString();
+        if (inValue !== NaN) {
+            if (unit === "c" || unit === "f") {
+                output = this.convertTemperature(inValue, unit);
+            } else if (unit === "kg" || unit === "lb") {
+                output = this.convertMass(inValue, unit);
+            } else if (unit === "cm" || unit === "in") {
+                output = this.convertLength(inValue, unit);
             }
-
-            if (outTemp === "100") {
-                outEmojis.push('💯');
-            } else {
-                //Convert each digit to an emoji and push to array to add as reaction later
-                for (var i = 0; i < outTemp.length; i++) {
-                    let toAdd = this.digitToEmoji(outTemp[i]);
-                    //Digits need to be all unique. If not, just send the value as a fallback
-                    if (outEmojis.includes(toAdd)) {
-                        receivedMessage.channel.send(outTemp + 'F');
-                        return;
-                    }
-                    outEmojis.push(toAdd);
-                }
-            }
-
-            outEmojis.push(unit === "c" ? '🇫' : '🇨');
         }
 
-        this.reactSequence(receivedMessage, outEmojis);
+        if (typeof(output) === "string") {
+            receivedMessage.channel.send(output);
+        } else {
+            this.reactSequence(receivedMessage, output);
+        }
     }
+
+    convertTemperature(temperature, unit) {
+        let outTemp;
+        let output = [];
+        if (unit === "c") {
+            //C to F
+            outTemp = (temperature * 9 / 5) + 32;
+        } else {
+            //F to C
+            outTemp = (temperature - 32) * 5 / 9;
+        }
+
+        outTemp = Math.floor(outTemp).toString();
+
+        if (outTemp === "100") {
+            output.push('💯');
+        } else {
+            //Convert each digit to an emoji and push to array to add as reaction later
+            for (var i = 0; i < outTemp.length; i++) {
+                let toAdd = this.digitToEmoji(outTemp[i]);
+                //Digits need to be all unique. If not, just send the value as a fallback
+                if (output.includes(toAdd)) {
+                    return outTemp + (unit === 'c' ? 'F' : 'C');
+                }
+                output.push(toAdd);
+            }
+        }
+
+        output.push(unit === "c" ? '🇫' : '🇨');
+
+        return output;
+    }
+
+    convertMass(mass, unit) {
+        let outMass;
+        let output = [];
+        if (unit === "kg") {
+            //kg to lb
+            outMass = mass * 2.205;
+        } else {
+            //lb to kg
+            outMass = mass / 2.205;
+        }
+
+        outMass = Math.floor(outMass).toString();
+
+        if (outMass === "100") {
+            output.push('💯');
+        } else {
+            //Convert each digit to an emoji and push to array to add as reaction later
+            for (var i = 0; i < outMass.length; i++) {
+                let toAdd = this.digitToEmoji(outMass[i]);
+                //Digits need to be all unique. If not, just send the value as a fallback
+                if (output.includes(toAdd)) {
+                    return outMass + (unit === 'kg' ? 'lb' : 'kg');
+                }
+                output.push(toAdd);
+            }
+        }
+
+        if (unit === "kg") {
+            output.push('🇱', '🇧');
+        } else {
+            output.push('🇰', '🇬')
+        }
+
+        return output;
+    }
+
+    convertLength(length, unit) {
+        let outLength;
+        let output = [];
+        if (unit === "cm") {
+            // cm to in
+            outLength = length / 2.54;
+        } else {
+            // in to cm
+            outLength = length * 2.54;
+        }
+
+        outLength = Math.floor(outLength).toString();
+
+        if (outLength === "100") {
+            output.push('💯');
+        } else {
+            //Convert each digit to an emoji and push to array to add as reaction later
+            for (var i = 0; i < outLength.length; i++) {
+                let toAdd = this.digitToEmoji(outLength[i]);
+                //Digits need to be all unique. If not, just send the value as a fallback
+                if (output.includes(toAdd)) {
+                    return outLength + (unit === 'cm' ? 'in' : 'cm');
+                }
+                output.push(toAdd);
+            }
+        }
+
+        if (unit === "cm") {
+            output.push('🇮', '🇳');
+        } else {
+            output.push('🇨', '🇲')
+        }
+
+        return output;
+    }
+
 
     /**
      * Add a list of emojis as reactions to a message in order

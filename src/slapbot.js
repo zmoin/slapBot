@@ -255,7 +255,7 @@ class Slapbot {
     toggleWhitelist(receivedMessage) {
         if (this.checkPermission("admin", receivedMessage.author.id)) {
             this.whitelistEnabled = !this.whitelistEnabled;
-            receivedMessage.channel.send(`Whitelist ${this.blacklistEnabled ? "enabled" : "disabled"}`);
+            receivedMessage.channel.send(`Whitelist ${this.whitelistEnabled ? "enabled" : "disabled"}`);
         }
     }
 

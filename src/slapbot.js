@@ -119,6 +119,36 @@ class Slapbot {
         }
     }
 
+
+    /**
+     * Check if a string is a valid mention for a given guild
+     * @param {String} stringToCheck - String to check
+     * @param {Guild} guild - Guild/Server to check the mention against
+     */
+    isValidMention(stringToCheck, guild) {
+        let retVal = false;
+
+        let userId = stringToCheck.substr(2, stringToCheck.length - 3);
+        //weird bug in the library or API, adds an extra ! for the admin(??)
+        //checked for the ! and also added an extra space for a character in the regExp
+        if (userId.startsWith('!')) {
+            userId = userId.substr(1)
+        }
+
+        console.log("STRING TO CHECK :" + stringToCheck + " TESTING :" + /^<@.\d+>$/.test(stringToCheck))
+        console.log("USER ID USING: " + userId);
+        console.log("GUILD MEMBER STATUS :" + guild.members.keyArray().includes(userId))
+            //if the guild contains the userID && the member is in the server, then return as valid
+        if (/^<@.\d+>$/.test(stringToCheck) && guild.members.keyArray().includes(userId)) {
+            retVal = true
+        }
+
+        console.log("RETURNING : " + retVal)
+
+        return retVal;
+
+    }
+
     /**
      * React to a slap command
      * @param {*} receivedMessage - the received message to respond to
@@ -129,22 +159,22 @@ class Slapbot {
 
         // Check if the first word after slap is the user to slap
         let userToSlap = splitCommand[0];
-        if (this.isValidMention(userToSlap, receivedMessage.guild))
-            return;
-
-        // All other words are arguments/parameters/options for the command
+        //if this is NOT a valid user then return
+        if (this.isValidMention(userToSlap, receivedMessage.guild) == false)
+            return
+            // All other words are arguments/parameters/options for the command
         let args = splitCommand.slice(1)
         console.log(args)
 
         let vowel = args.map(function(vowels) {
             return vowels.charAt(0)
         })[0]
-        console.log(vowel)
+        console.log("FIRST LETTER : " + vowel)
 
         let article = 'a'
         if (vowel == 'a' || vowel == 'e' || vowel == 'i' || vowel == 'o' || vowel == 'u')
             article = 'an'
-        console.log(article)
+        console.log("ARTICLE USED :" + article)
 
         let argString = args.join(' ')
 
@@ -154,26 +184,11 @@ class Slapbot {
         } else
             receivedMessage.channel.send(receivedMessage.author.toString() + ` slaps ` + userToSlap).then((sentMessage) =>
                 sentMessage.react(this.generateEmoji())).then(console.log("Reacted")).catch(console.error);
+
     }
 
 
-    /**
-     * Check if a string is a valid mention for a given guild
-     * @param {String} stringToCheck - String to check
-     * @param {Guild} guild - Guild/Server to check the mention against
-     */
-    isValidMention(stringToCheck, guild) {
 
-        if (!/^<@\d+>$/.test(stringToCheck))
-            return false;
-
-        let userId = stringToCheck.substr(2, stringToCheck.length - 3);
-        //if the guild contains the userID, then return as valid
-        if (!guild.members.keyArray().includes(userId))
-            return false;
-        else
-            return true;
-    }
 
     /**
      * Generate a random Emoji
@@ -183,11 +198,11 @@ class Slapbot {
      */
     generateEmoji() {
         return this.chance.pickone(['😀', '😁', '😂', '🤣', '😄',
-            '😅', '😆', '😊', '😋', '😎', '😗', '😙', '😛', '😜', '😝',
-            '🤪', '😵', '🤡', '😈', '💀', '👻', '👽', '🤖',
+            '😅', '😆', '😊', '😋', '😎', '😗', '😙', '😛', '😜', '😝', '😵', '🤡', '😈', '💀', '👻', '👽', '🤖',
             '💩', '😺', '😸', '😹', '🙀', '😿', '😾', '👍', '👎', '👊', '✊', '🤛', '🤜', '🤞', '✌', '🤟', '🤘',
-            '👌', '👈', '👉', '👆', '👇', '☝️', '✋', '🤚', '🖐', '🖖', '👋', '🤙', '💪', '👀', '🐡', '🐟',
-            '🐬', '🌚', '‍☠️',
+            '👌', '👈', '👉', '👆', '👇', '✋', '🤚', '🖐', '☝',
+            '🖖', '👋', '🤙', '💪', '👀', '🐡', '🐟',
+            '🐬', '🌚', '☠', "561778753987149825", "560267944773287949", "560268022233956363", "560837630204444691", "560838509347209235", "561783060572667909"
         ])
     }
 

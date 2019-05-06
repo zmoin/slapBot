@@ -45,16 +45,20 @@ class Slapbot {
             }
 
             // Whitelist to prevent non whitelisted users using commands.
-            if (this.whitelistEnabled && !whitelist.includes(receivedMessage.author.id)) {
+            //don't need to be whitelisted if you're the admin
+            if (this.whitelistEnabled && !whitelist.includes(receivedMessage.author.id) &&
+                !this.checkPermission("admin", receivedMessage.author.id)) {
                 return
             }
             // Blacklist to prevent blacklisted users using commands.
-            if (this.blacklistEnabled && blacklist.includes(receivedMessage.author.id)) {
+            //can't be blacklisted if you're the admin
+            if (this.blacklistEnabled && blacklist.includes(receivedMessage.author.id) &&
+                !this.checkPermission("admin", receivedMessage.author.id)) {
                 return
             }
 
             // if the message starts with a . then pass it on the the function
-            if (receivedMessage.content.startsWith('.')) {
+            if (receivedMessage.content.startsWith('/')) {
                 // get the author of the message
                 // Remove the leading period and the space into new member
                 receivedMessage.command = receivedMessage.content.substr(1)
@@ -87,7 +91,7 @@ class Slapbot {
     commandSwitch(receivedMessage) {
         // Get command to use 
         let commandKey = receivedMessage.command.split(' ')[0]
-        // Remove the command key from the string
+            // Remove the command key from the string
         receivedMessage.command = receivedMessage.command.substr(commandKey.length + 1)
 
         // Call the correct command
@@ -97,10 +101,9 @@ class Slapbot {
                 this.slapCommand(receivedMessage)
                 break
             case 'nuke':
-                //could just check for permission here
                 this.nukeCommand(receivedMessage)
                 break
-            //only available to the admin
+                //only available to the admin
             case 'stop':
                 this.stopCommand(receivedMessage);
                 break;
@@ -126,19 +129,33 @@ class Slapbot {
 
         // Check if the first word after slap is the user to slap
         let userToSlap = splitCommand[0];
-        if (!this.isValidMention(userToSlap, receivedMessage.guild)) return;
+        if (this.isValidMention(userToSlap, receivedMessage.guild))
+            return;
 
         // All other words are arguments/parameters/options for the command
         let args = splitCommand.slice(1)
+        console.log(args)
+
+        let vowel = args.map(function(vowels) {
+            return vowels.charAt(0)
+        })[0]
+        console.log(vowel)
+
+        let article = 'a'
+        if (vowel == 'a' || vowel == 'e' || vowel == 'i' || vowel == 'o' || vowel == 'u')
+            article = 'an'
+        console.log(article)
+
         let argString = args.join(' ')
 
         if (args.length > 0) {
-            receivedMessage.channel.send(receivedMessage.author.toString() + ` slaps ` + userToSlap + ` with a ${argString}`).then((sentMessage) =>
+            receivedMessage.channel.send(receivedMessage.author.toString() + ` slaps ` + userToSlap + ` with ` + article + ` ${argString}`).then((sentMessage) =>
                 sentMessage.react(this.generateEmoji())).then(console.log("Reacted")).catch(console.error);
         } else
             receivedMessage.channel.send(receivedMessage.author.toString() + ` slaps ` + userToSlap).then((sentMessage) =>
                 sentMessage.react(this.generateEmoji())).then(console.log("Reacted")).catch(console.error);
     }
+
 
     /**
      * Check if a string is a valid mention for a given guild
@@ -147,12 +164,15 @@ class Slapbot {
      */
     isValidMention(stringToCheck, guild) {
 
-        if (!/^<@\d+>$/.test(stringToCheck)) return false;
+        if (!/^<@\d+>$/.test(stringToCheck))
+            return false;
 
         let userId = stringToCheck.substr(2, stringToCheck.length - 3);
-        if (guild.members.keyArray().includes(userId)) return true;
-
-        return false;
+        //if the guild contains the userID, then return as valid
+        if (!guild.members.keyArray().includes(userId))
+            return false;
+        else
+            return true;
     }
 
     /**

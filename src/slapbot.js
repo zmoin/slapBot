@@ -3,7 +3,7 @@ const Discord = require('discord.js')
 const Chance = require('chance')
 const loadJsonFile = require('load-json-file')
 let logger = require('winston')
-let whitelist = loadJsonFile.sync('./config/whitelist.json')
+let whitelist = new Set(loadJsonFile.sync('./config/whitelist.json'))
 let blacklist = loadJsonFile.sync('./config/blacklist.json')
 let permissions = loadJsonFile.sync('./config/permissions.json')
 
@@ -107,6 +107,9 @@ class Slapbot {
             case 'stop':
                 this.stopCommand(receivedMessage);
                 break;
+            case 'add':
+                this.addWhitelist(receivedMessage);
+                break;
             case 'whitelist':
                 this.toggleWhitelist(receivedMessage);
                 break;
@@ -119,6 +122,47 @@ class Slapbot {
         }
     }
 
+    /**
+     * BROKEN******
+     * Add a user to the whitelist to use the command privilages
+     * @param {*} receivedMessage - the received message to respond to
+     */
+
+    addWhitelist(receivedMessage) {
+        var fs = require('fs');
+        let wl = new Set(this.whitelist)
+        var obj = new Set()
+
+        // Split the message up in to pieces for each space/simulate an array
+        let splitCommand = receivedMessage.command.split(' ')
+
+        //adding values to the set object
+        splitCommand.forEach(user => {
+            if (this.isValidMention(user, receivedMessage.guild) == false)
+                return
+            else if (wl.has(user))
+                receivedMessage.channel.send("YEAS BITCH")
+            else {
+                receivedMessage.channel.send(user + " is Whitelisted")
+                var userID = user.replace(/[<@!>]/g, '');
+                //adding the userID NUMBERS to the obj SET
+                obj.add(userID);
+            }
+        })
+
+        obj.forEach(key => {
+            console.log("KEY " + key);
+            wl.add(key);
+        });
+        var json = JSON.stringify([...wl]); //convert it back to json
+        fs.writeFile('config/whitelist.json', json, 'utf8', (err) => { // write it back 
+            console.log(wl);
+            if (err)
+                console.log(err);
+            else
+                this.whitelist = wl;
+        });
+    }
 
     /**
      * Check if a string is a valid mention for a given guild
@@ -126,27 +170,12 @@ class Slapbot {
      * @param {Guild} guild - Guild/Server to check the mention against
      */
     isValidMention(stringToCheck, guild) {
-        let retVal = false;
-
+        if (!/^<@[!&]?\d+>$/.test(stringToCheck))
+            return false
         let userId = stringToCheck.substr(2, stringToCheck.length - 3);
-        //weird bug in the library or API, adds an extra ! for the admin(??)
-        //checked for the ! and also added an extra space for a character in the regExp
-        if (userId.startsWith('!')) {
-            userId = userId.substr(1)
+        if (guild.members.keyArray().includes(userId)) {
+            return true
         }
-
-        console.log("STRING TO CHECK :" + stringToCheck + " TESTING :" + /^<@.\d+>$/.test(stringToCheck))
-        console.log("USER ID USING: " + userId);
-        console.log("GUILD MEMBER STATUS :" + guild.members.keyArray().includes(userId))
-            //if the guild contains the userID && the member is in the server, then return as valid
-        if (/^<@.\d+>$/.test(stringToCheck) && guild.members.keyArray().includes(userId)) {
-            retVal = true
-        }
-
-        console.log("RETURNING : " + retVal)
-
-        return retVal;
-
     }
 
     /**
@@ -211,9 +240,6 @@ class Slapbot {
      * @param {*} receivedMessage - the received message to respond to.
      */
     nukeCommand(receivedMessage) {
-        // Split the message up in to pieces for each space/simulate an array
-        let splitCommand = receivedMessage.command.split(' ')
-
         //if there are no users mentioned, then return withot doing anything
         if (!receivedMessage.mentions.users.first())
             return

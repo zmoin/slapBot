@@ -8,6 +8,7 @@
         "discord.js": "^11.4.2",
         "dotenv": "^7.0.0",
         "load-json-file": "^5.2.0",
+        "lodash": "^4.17.11",
         "lowdb": "^1.0.0",
         "winston": "^3.2.1"
     },

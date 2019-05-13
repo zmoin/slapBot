@@ -32,7 +32,7 @@ class LoadChannel extends Command {
             count++
             return true;
         })
-        receivedMessage.channel.send(`Loaded ${count} users into the db`)
+        receivedMessage.channel.send(`Loaded ` + count + ` users into the db`)
     }
 }
 

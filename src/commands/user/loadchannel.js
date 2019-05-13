@@ -13,13 +13,13 @@ class LoadChannel extends Command {
     }
 
     static get signature() {
-        return 'load-channel'
-    }
-    /**
-     * Switch between what command to run based in the first param after !
-     *
-     * @param {*} receivedMessage
-     */
+            return 'load-channel'
+        }
+        /**
+         * Switch between what command to run based in the first param after !
+         *
+         * @param {*} receivedMessage
+         */
     handle(receivedMessage) {
         let count = 0;
         let users = receivedMessage.guild.members.filter(({

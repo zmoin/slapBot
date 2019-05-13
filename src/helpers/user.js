@@ -61,11 +61,15 @@ User.addUser = (id, options) => {
     })).write()
 }
 
-User.getUsers = () => db.value()
+User.getUsers = () => {
+    return db.value();
+}
 
-User.getUser = (id) => db.find({
-    id
-}).value()
+User.getUser = (id) => {
+    return db.find({
+        id
+    }).value();
+}
 
 User.removeUser = (id) => db.remove({
     id

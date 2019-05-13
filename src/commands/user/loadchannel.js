@@ -15,6 +15,11 @@ class LoadChannel extends Command {
     static get signature() {
         return 'load-channel'
     }
+
+    static get roles() {
+        return ['admin']
+    }
+
     /**
      * Switch between what command to run based in the first param after !
      *
@@ -26,11 +31,11 @@ class LoadChannel extends Command {
             user
         }) => {
             if (!_.isEmpty(User.getUser(user.id))) {
-                return false;
+                return false
             }
             User.addUser(user.id)
             count++
-            return true;
+            return true
         })
         receivedMessage.channel.send(`Loaded ${count} users into the db`)
     }

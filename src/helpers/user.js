@@ -62,7 +62,9 @@ User.addUser = (id, options) => {
 
 User.getUsers = () => db.value()
 
-User.getUser = (id) => db.get(id).value()
+User.getUser = (id) => db.find({
+    id
+}).value()
 
 User.isValidMention = (stringToCheck, guild) => {
     if (!/^<@[!&]?\d+>$/.test(stringToCheck))

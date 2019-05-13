@@ -2,10 +2,11 @@ require('dotenv').config()
 const Discord = require('discord.js')
 const Chance = require('chance')
 const loadJsonFile = require('load-json-file')
+const UserCommand = require('./commands/user')
+const User = require('./helpers/user')
 let logger = require('winston')
 let whitelist = loadJsonFile.sync('./config/whitelist.json')
 let blacklist = loadJsonFile.sync('./config/blacklist.json')
-let permissions = loadJsonFile.sync('./config/permissions.json')
 
 /**
  * Slapbot class
@@ -24,10 +25,12 @@ class Slapbot {
         if (!options.token) {
             return
         }
-
         this.token = options.token
         this.whitelistEnabled = options.whitelist || false
         this.blacklistEnabled = options.blacklist || false
+        this.commands = {
+            [UserCommand.signature]: new UserCommand()
+        }
 
         this.chance = new Chance()
         let client = new Discord.Client()
@@ -47,13 +50,13 @@ class Slapbot {
             // Whitelist to prevent non whitelisted users using commands.
             //don't need to be whitelisted if you're the admin
             if (this.whitelistEnabled && !whitelist.includes(receivedMessage.author.id) &&
-                !this.checkPermission("admin", receivedMessage.author.id)) {
+                !User.hasRole("admin", receivedMessage.author.id)) {
                 return
             }
             // Blacklist to prevent blacklisted users using commands.
             //can't be blacklisted if you're the admin
             if (this.blacklistEnabled && blacklist.includes(receivedMessage.author.id) &&
-                !this.checkPermission("admin", receivedMessage.author.id)) {
+                !User.hasRole("admin", receivedMessage.author.id)) {
                 return
             }
 
@@ -85,13 +88,13 @@ class Slapbot {
 
     /**
      * Switch between what command to run based in the first param after !
-     * 
-     * @param {*} receivedMessage 
+     *
+     * @param {*} receivedMessage
      */
     commandSwitch(receivedMessage) {
-        // Get command to use 
+        // Get command to use
         let commandKey = receivedMessage.command.split(' ')[0]
-            // Remove the command key from the string
+        // Remove the command key from the string
         receivedMessage.command = receivedMessage.command.substr(commandKey.length + 1)
 
         // Call the correct command
@@ -114,8 +117,10 @@ class Slapbot {
                 this.toggleBlacklist(receivedMessage);
                 break;
             default:
-                // Unknown command
-                break
+                if (this.commands.hasOwnProperty(commandKey)) {
+                    this.commands[commandKey].handle(receivedMessage)
+                }
+                break;
         }
     }
 
@@ -138,7 +143,7 @@ class Slapbot {
         console.log("STRING TO CHECK :" + stringToCheck + " TESTING :" + /^<@.\d+>$/.test(stringToCheck))
         console.log("USER ID USING: " + userId);
         console.log("GUILD MEMBER STATUS :" + guild.members.keyArray().includes(userId))
-            //if the guild contains the userID && the member is in the server, then return as valid
+        //if the guild contains the userID && the member is in the server, then return as valid
         if (/^<@.\d+>$/.test(stringToCheck) && guild.members.keyArray().includes(userId)) {
             retVal = true
         }
@@ -162,7 +167,7 @@ class Slapbot {
         //if this is NOT a valid user then return
         if (this.isValidMention(userToSlap, receivedMessage.guild) == false)
             return
-            // All other words are arguments/parameters/options for the command
+        // All other words are arguments/parameters/options for the command
         let args = splitCommand.slice(1)
         console.log(args)
 
@@ -219,7 +224,7 @@ class Slapbot {
             return
 
         //if the person is not "nuker", then the bot is not going to do anything
-        if (this.checkPermission('nuker', receivedMessage.author.id)) {
+        if (User.hasRole('nuker', receivedMessage.author.id)) {
             //other the bot will send the message to the channel and also react using one of the 3 emojis
             receivedMessage.channel.send(receivedMessage.author.toString() + ` nukes ` + receivedMessage.mentions.members.first()).then((sentMessage) =>
                 sentMessage.react(this.chance.pickone(['💣', '🔥', '💥']))).then(console.log("Reacted")).catch(console.error);
@@ -232,19 +237,8 @@ class Slapbot {
      * @param {*} receivedMessage - the received message to respond to.
      */
     stopCommand(receivedMessage) {
-        if (this.checkPermission('admin', receivedMessage.author.id)) {
+        if (User.hasRole('admin', receivedMessage.author.id)) {
             this.stop()
-        }
-    }
-
-    /**
-     * Checks if a user id is listed for a given permission
-     * @param {string} permission - the permission to check for
-     * @param {string} id - ID of user to check for permission
-     */
-    checkPermission(permission, id) {
-        if (permissions.hasOwnProperty(permission)) {
-            return permissions[permission].includes(id)
         }
     }
 
@@ -253,7 +247,7 @@ class Slapbot {
      * @param {*} receivedMessage - The received message to respond to
      */
     toggleWhitelist(receivedMessage) {
-        if (this.checkPermission("admin", receivedMessage.author.id)) {
+        if (User.hasRole("admin", receivedMessage.author.id)) {
             this.whitelistEnabled = !this.whitelistEnabled;
             receivedMessage.channel.send(`Whitelist ${this.whitelistEnabled ? "enabled" : "disabled"}`);
         }
@@ -264,7 +258,7 @@ class Slapbot {
      * @param {*} receivedMessage - The received message to respond to
      */
     toggleBlacklist(receivedMessage) {
-        if (this.checkPermission("admin", receivedMessage.author.id)) {
+        if (User.hasRole("admin", receivedMessage.author.id)) {
             this.blacklistEnabled = !this.blacklistEnabled;
             receivedMessage.channel.send(`Blacklist ${this.blacklistEnabled ? "enabled" : "disabled"}`)
         }

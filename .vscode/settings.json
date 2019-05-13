@@ -1,5 +1,11 @@
 {
     "editor.formatOnSave": true,
     "gitlens.codeLens.recentChange.enabled": false,
-    "gitlens.codeLens.authors.enabled": false
+    "gitlens.codeLens.authors.enabled": false,
+    "[javascript]": {
+        "editor.defaultFormatter": "HookyQR.beautify"
+    },
+    "[json]": {
+        "editor.defaultFormatter": "HookyQR.beautify"
+    },
 }

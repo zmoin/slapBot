@@ -94,7 +94,7 @@ class Slapbot {
     commandSwitch(receivedMessage) {
         // Get command to use
         let commandKey = receivedMessage.command.split(' ')[0]
-        // Remove the command key from the string
+            // Remove the command key from the string
         receivedMessage.command = receivedMessage.command.substr(commandKey.length + 1)
 
         // Call the correct command
@@ -134,8 +134,8 @@ class Slapbot {
         let retVal = false;
 
         let userId = stringToCheck.substr(2, stringToCheck.length - 3);
-        //weird bug in the library or API, adds an extra ! for the admin(??)
         //checked for the ! and also added an extra space for a character in the regExp
+        //! in front of the userName means the user has a nickname in the channel
         if (userId.startsWith('!')) {
             userId = userId.substr(1)
         }
@@ -143,7 +143,7 @@ class Slapbot {
         console.log("STRING TO CHECK :" + stringToCheck + " TESTING :" + /^<@.\d+>$/.test(stringToCheck))
         console.log("USER ID USING: " + userId);
         console.log("GUILD MEMBER STATUS :" + guild.members.keyArray().includes(userId))
-        //if the guild contains the userID && the member is in the server, then return as valid
+            //if the guild contains the userID && the member is in the server, then return as valid
         if (/^<@.\d+>$/.test(stringToCheck) && guild.members.keyArray().includes(userId)) {
             retVal = true
         }
@@ -167,7 +167,7 @@ class Slapbot {
         //if this is NOT a valid user then return
         if (this.isValidMention(userToSlap, receivedMessage.guild) == false)
             return
-        // All other words are arguments/parameters/options for the command
+            // All other words are arguments/parameters/options for the command
         let args = splitCommand.slice(1)
         console.log(args)
 
@@ -177,6 +177,7 @@ class Slapbot {
         console.log("FIRST LETTER : " + vowel)
 
         let article = 'a'
+            //switch statement was acting weird (??) we could retry refactoring this
         if (vowel == 'a' || vowel == 'e' || vowel == 'i' || vowel == 'o' || vowel == 'u')
             article = 'an'
         console.log("ARTICLE USED :" + article)

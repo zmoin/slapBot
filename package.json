@@ -5,7 +5,7 @@
     "main": "index.js",
     "dependencies": {
         "chance": "^1.0.18",
-        "discord.js": "^11.4.2",
+        "discord.js": "^11.5.0",
         "dotenv": "^7.0.0",
         "load-json-file": "^5.2.0",
         "lodash": "^4.17.11",
@@ -29,7 +29,7 @@
         "discord",
         "discordbot"
     ],
-    "author": "Zarrin",
+    "author": "Awerlu-lastplacer-Omnix-Kitsune",
     "bugs": {
         "url": "https://github.com/zmoin/slapBot/issues"
     },

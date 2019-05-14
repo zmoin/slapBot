@@ -13,6 +13,7 @@ User.roles = [
     'admin',
     'nuker',
     'user',
+    'guest',
     'banned'
 ]
 
@@ -69,6 +70,10 @@ User.getUser = (id) => {
         id
     }).value();
 }
+
+User.removeUser = (id) => db.remove({
+    id
+}).write()
 
 User.isValidMention = (stringToCheck, guild) => {
     if (!/^<@[!&]?\d+>$/.test(stringToCheck))

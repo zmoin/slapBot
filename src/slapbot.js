@@ -122,11 +122,21 @@ class Slapbot {
                 this.toggleBlacklist(receivedMessage);
                 break;
             default:
-                if (this.commands.hasOwnProperty(commandKey) && this.commands[commandKey].checkRoles(receivedMessage)) {
-                    this.commands[commandKey].handle(receivedMessage)
-                } else {
-                    receivedMessage.channel.send("You don't have permission to use this command")
+                if (!this.commands.hasOwnProperty(commandKey)) {
+                    return receivedMessage.channel.send("Command doesn't exist")
                 }
+
+                this.commands[commandKey].allowed(receivedMessage.author)
+                    .then((allowed) => {
+                        if (allowed) {
+                            this.commands[commandKey].handle(receivedMessage)
+                        } else {
+                            receivedMessage.channel.send("You don't have permission to use this command")
+                        }
+                    })
+                    .catch(err => {
+                        logger.error(err)
+                    })
                 break;
         }
     }

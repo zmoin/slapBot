@@ -45,11 +45,22 @@ class Command {
     handleSubCommands(receivedMessage) {
         let commandKey = receivedMessage.command.split(' ')[0]
         receivedMessage.command = receivedMessage.command.substr(commandKey.length + 1)
-        if (this.subCommands.hasOwnProperty(commandKey) && this.subCommands[commandKey].allowed(receivedMessage.author)) {
-            this.subCommands[commandKey].handle(receivedMessage)
-        } else {
-            receivedMessage.channel.send("You don't have permission to use this command")
+
+        if (!this.subCommands.hasOwnProperty(commandKey)) {
+            return receivedMessage.channel.send("Command doesn't exist")
         }
+
+        this.subCommands[commandKey].allowed(receivedMessage.author)
+            .then((allowed) => {
+                if (allowed) {
+                    this.subCommands[commandKey].handle(receivedMessage)
+                } else {
+                    receivedMessage.channel.send("You don't have permission to use this command")
+                }
+            })
+            .catch(err => {
+                logger.error(err)
+            })
     }
 
     nextParam(receivedMessage) {
@@ -64,7 +75,7 @@ class Command {
     async allowed(author) {
         const user = await User.getUser(author.id)
         const role = _.get(user, 'role', 'guest')
-        if (!_.includes(this.allowedRoles, role)) {
+        if (!_.includes(this.constructor.allowedRoles, role)) {
             return false
         }
         return true;

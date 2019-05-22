@@ -27,7 +27,7 @@ class LoadChannel extends Command {
      * @param {*} receivedMessage
      */
     handle(receivedMessage) {
-        let promises = [];
+        let promises = []
 
         receivedMessage.guild.every(() => {
             promises.push(async () => {
@@ -36,7 +36,7 @@ class LoadChannel extends Command {
                     return false
                 }
 
-                await User.addUser(user.id);
+                await User.addUser(user.id)
                 return true
             })
         })

@@ -3,17 +3,17 @@ const Chance = require('chance')
 const loadJsonFile = require('load-json-file')
 const UserCommand = require('./commands/user')
 const User = require('./helpers/user')
-const Knex = require('knex');
-const knexConfig = require('../knexfile');
+const Knex = require('knex')
+const knexConfig = require('../knexfile')
 const {
     Model
-} = require('objection');
-const knex = Knex(knexConfig[process.env.NODE_ENV]);
+} = require('objection')
+const knex = Knex(knexConfig[process.env.NODE_ENV])
 let logger = require('winston')
 let whitelist = loadJsonFile.sync('./config/whitelist.json')
 let blacklist = loadJsonFile.sync('./config/blacklist.json')
 
-Model.knex(knex);
+Model.knex(knex)
 
 /**
  * Slapbot class
@@ -113,14 +113,14 @@ class Slapbot {
                 break
                 //only available to the admin
             case 'stop':
-                this.stopCommand(receivedMessage);
-                break;
+                this.stopCommand(receivedMessage)
+                break
             case 'whitelist':
-                this.toggleWhitelist(receivedMessage);
-                break;
+                this.toggleWhitelist(receivedMessage)
+                break
             case 'blacklist':
-                this.toggleBlacklist(receivedMessage);
-                break;
+                this.toggleBlacklist(receivedMessage)
+                break
             default:
                 if (!this.commands.hasOwnProperty(commandKey)) {
                     return receivedMessage.channel.send("Command doesn't exist")
@@ -137,7 +137,7 @@ class Slapbot {
                     .catch(err => {
                         logger.error(err)
                     })
-                break;
+                break
         }
     }
 
@@ -148,9 +148,9 @@ class Slapbot {
      * @param {Guild} guild - Guild/Server to check the mention against
      */
     isValidMention(stringToCheck, guild) {
-        let retVal = false;
+        let retVal = false
 
-        let userId = stringToCheck.substr(2, stringToCheck.length - 3);
+        let userId = stringToCheck.substr(2, stringToCheck.length - 3)
         //checked for the ! and also added an extra space for a character in the regExp
         //! in front of the userName means the user has a nickname in the channel
         if (userId.startsWith('!')) {
@@ -158,7 +158,7 @@ class Slapbot {
         }
 
         console.log("STRING TO CHECK :" + stringToCheck + " TESTING :" + /^<@.\d+>$/.test(stringToCheck))
-        console.log("USER ID USING: " + userId);
+        console.log("USER ID USING: " + userId)
         console.log("GUILD MEMBER STATUS :" + guild.members.keyArray().includes(userId))
         //if the guild contains the userID && the member is in the server, then return as valid
         if (/^<@.\d+>$/.test(stringToCheck) && guild.members.keyArray().includes(userId)) {
@@ -167,8 +167,7 @@ class Slapbot {
 
         console.log("RETURNING : " + retVal)
 
-        return retVal;
-
+        return retVal
     }
 
     /**
@@ -180,7 +179,7 @@ class Slapbot {
         let splitCommand = receivedMessage.command.split(' ')
 
         // Check if the first word after slap is the user to slap
-        let userToSlap = splitCommand[0];
+        let userToSlap = splitCommand[0]
         //if this is NOT a valid user then return
         if (this.isValidMention(userToSlap, receivedMessage.guild) == false)
             return
@@ -203,10 +202,10 @@ class Slapbot {
 
         if (args.length > 0) {
             receivedMessage.channel.send(receivedMessage.author.toString() + ` slaps ` + userToSlap + ` with ` + article + ` ${argString}`).then((sentMessage) =>
-                sentMessage.react(this.generateEmoji())).then(console.log("Reacted")).catch(console.error);
+                sentMessage.react(this.generateEmoji())).then(console.log("Reacted")).catch(console.error)
         } else
             receivedMessage.channel.send(receivedMessage.author.toString() + ` slaps ` + userToSlap).then((sentMessage) =>
-                sentMessage.react(this.generateEmoji())).then(console.log("Reacted")).catch(console.error);
+                sentMessage.react(this.generateEmoji())).then(console.log("Reacted")).catch(console.error)
 
     }
 
@@ -246,7 +245,7 @@ class Slapbot {
                     receivedMessage.channel.send(receivedMessage.author.toString() + ` nukes ` + receivedMessage.mentions.members.first())
                         .then((sentMessage) =>
                             sentMessage.react(this.chance.pickone(['💣', '🔥', '💥']))).then(console.log("Reacted"))
-                        .catch(console.error);
+                        .catch(console.error)
                 }
             })
             .catch(err => {
@@ -279,8 +278,8 @@ class Slapbot {
         User.hasRole("admin", receivedMessage.author.id)
             .then((userHasRole) => {
                 if (userHasRole) {
-                    this.whitelistEnabled = !this.whitelistEnabled;
-                    receivedMessage.channel.send(`Whitelist ${this.whitelistEnabled ? "enabled" : "disabled"}`);
+                    this.whitelistEnabled = !this.whitelistEnabled
+                    receivedMessage.channel.send(`Whitelist ${this.whitelistEnabled ? "enabled" : "disabled"}`)
                 }
             })
             .catch(err => {
@@ -296,7 +295,7 @@ class Slapbot {
         User.hasRole("admin", receivedMessage.author.id)
             .then((userHasRole) => {
                 if (userHasRole) {
-                    this.blacklistEnabled = !this.blacklistEnabled;
+                    this.blacklistEnabled = !this.blacklistEnabled
                     receivedMessage.channel.send(`Blacklist ${this.blacklistEnabled ? "enabled" : "disabled"}`)
                 }
             })

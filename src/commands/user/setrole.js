@@ -4,7 +4,7 @@ let logger = require('winston')
 const {
     isValidMention,
     getIdFromMention
-} = require('../../helpers/user');
+} = require('../../helpers/user')
 
 /**
  * Set role for a user

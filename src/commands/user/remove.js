@@ -33,7 +33,7 @@ class Remove extends Command {
         if (!isValidMention(param, receivedMessage.guild)) {
             return receivedMessage.channel.send('Invalid mention')
         }
-        const user = receivedMessage.guild.members.get(getIdFromMention(param)).user;
+        const user = receivedMessage.guild.members.get(getIdFromMention(param)).user
 
         User.removeUser(user.id)
             .then(() => {

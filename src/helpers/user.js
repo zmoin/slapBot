@@ -1,7 +1,7 @@
 const _ = require('lodash')
 const {
     User
-} = require('../models/user');
+} = require('../models/user')
 
 let UserHelper = {}
 
@@ -21,7 +21,7 @@ UserHelper.hasRole = async (role, id) => {
     const user = await User.query().findById(id)
 
     if (_.isEmpty(user)) {
-        return false;
+        return false
     }
 
     return user.role == role
@@ -62,7 +62,7 @@ UserHelper.isValidMention = (stringToCheck, guild) => {
     if (!/^<@[!&]?\d+>$/.test(stringToCheck))
         return false
     //else test the userID
-    let userId = stringToCheck.substr(2, stringToCheck.length - 3);
+    let userId = stringToCheck.substr(2, stringToCheck.length - 3)
     if (guild.members.keyArray().includes(userId)) {
         return true
     }

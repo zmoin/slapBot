@@ -78,7 +78,7 @@ class Command {
         if (!_.includes(this.constructor.allowedRoles, role)) {
             return false
         }
-        return true;
+        return true
     }
 }
 

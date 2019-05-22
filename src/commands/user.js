@@ -31,7 +31,7 @@ class User extends Command {
      * @param {*} receivedMessage
      */
     handle(receivedMessage) {
-        this.handleSubCommands(receivedMessage);
+        this.handleSubCommands(receivedMessage)
     }
 }
 

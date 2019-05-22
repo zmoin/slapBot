@@ -1,5 +1,6 @@
 const User = require('../../helpers/user')
 const Command = require('../command')
+let logger = require('winston')
 
 /**
  * Display all possible user roles

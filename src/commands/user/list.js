@@ -1,5 +1,6 @@
 const User = require('../../helpers/user')
 const Command = require('../command')
+let logger = require('winston')
 const _ = require('lodash')
 
 /**
@@ -21,12 +22,18 @@ class List extends Command {
      * @param {*} receivedMessage
      */
     handle(receivedMessage) {
-        let users = User.getUsers()
-        users = users.map(({
-            id,
-            role
-        }) => `${this.getUsername(id,receivedMessage)} - ${role}`).join('\n')
-        receivedMessage.channel.send(`Users;\n${users}`)
+        User.getUsers()
+            .then((users) => {
+                users = users.map(({
+                    id,
+                    role
+                }) => `${this.getUsername(id,receivedMessage)} - ${role}`).join('\n')
+
+                receivedMessage.channel.send(`Users;\n${users}`)
+            })
+            .catch(err => {
+                logger.error(err)
+            })
     }
 
     getUsername(id, receivedMessage) {

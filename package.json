@@ -7,17 +7,19 @@
         "chance": "^1.0.18",
         "discord.js": "^11.5.0",
         "dotenv": "^7.0.0",
+        "knex": "^0.16.5",
         "load-json-file": "^5.2.0",
         "lodash": "^4.17.11",
-        "lowdb": "^1.0.0",
+        "objection": "^1.6.9",
+        "pg": "^7.11.0",
         "winston": "^3.2.1"
     },
     "devDependencies": {
         "nodemon": "^1.18.10"
     },
     "scripts": {
-        "start": "node index.js",
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "migrate": "node -r dotenv/config ./node_modules/knex/bin/cli.js migrate:latest",
+        "start": "npm run migrate && node -r dotenv/config index.js"
     },
     "repository": {
         "type": "git",

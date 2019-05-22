@@ -1,5 +1,5 @@
 const _ = require('lodash')
-const User = reuqire('../helpers/user')
+const User = require('../helpers/user')
 /**
  * Command base class
  * Definition of how commands should be set up
@@ -61,8 +61,9 @@ class Command {
         }
     }
 
-    allowed(author) {
-        const role = _.get(User.getUser(author.id), 'role', 'guest')
+    async allowed(author) {
+        const user = await User.getUser(author.id)
+        const role = _.get(user, 'role', 'guest')
         if (!_.includes(this.allowedRoles, role)) {
             return false
         }

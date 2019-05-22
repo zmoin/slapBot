@@ -1,15 +1,11 @@
 const _ = require('lodash')
-const low = require('lowdb')
-const FileSync = require('lowdb/adapters/FileSync')
-const adapter = new FileSync('db/users.json', {
-    defaultValue: []
-})
+const {
+    User
+} = require('../models/user');
 
-let User = {}
+let UserHelper = {}
 
-const db = User.db = low(adapter)
-
-User.roles = [
+UserHelper.roles = [
     'admin',
     'nuker',
     'user',
@@ -17,15 +13,12 @@ User.roles = [
     'banned'
 ]
 
-User.hasRole = (role, id) => {
+UserHelper.hasRole = async (role, id) => {
     if (_.has(id, 'id')) {
         id = id.id
     }
 
-    let user = db.find({
-            id
-        })
-        .value()
+    const user = await User.query().findById(id)
 
     if (_.isEmpty(user)) {
         return false;
@@ -34,61 +27,49 @@ User.hasRole = (role, id) => {
     return user.role == role
 }
 
-User.setRole = (role, id) => {
-    const user = db.find({
-        id
-    }).value();
+UserHelper.setRole = async (role, id) => {
+    const user = await User.query().findById(id)
 
     if (_.isEmpty(user)) {
-        User.addUser(id)
+        await UserHelper.addUser(id)
     }
-
-    db.find({
-            id
-        })
-        .assign({
+    return User
+        .query()
+        .update({
             role
         })
-        .write()
+        .where('id', id)
 }
 
-User.addUser = (id, options) => {
-    db.push(_.defaults({
+UserHelper.addUser = async (id, options) => User
+    .query()
+    .insertAndFetch(_.defaults({
         id,
         ...options
     }, {
         role: 'user'
-    })).write()
-}
+    }))
 
-User.getUsers = () => {
-    return db.value();
-}
+UserHelper.getUsers = async () => User.query()
 
-User.getUser = (id) => {
-    return db.find({
-        id
-    }).value();
-}
+UserHelper.getUser = async (id) => User.query().findById(id)
 
-User.removeUser = (id) => db.remove({
-    id
-}).write()
+UserHelper.removeUser = async (id) => User.query().deleteById(id)
 
-User.isValidMention = (stringToCheck, guild) => {
-    //if the userID DOES NOT starts with <@ and may have either of !&, has a number of 
+UserHelper.isValidMention = (stringToCheck, guild) => {
+    //if the userID DOES NOT starts with <@ and may have either of !&, has a number of
     //number of numeric digits and ends with >, then return false
     if (!/^<@[!&]?\d+>$/.test(stringToCheck))
         return false
-            //else test the userID 
+    //else test the userID
     let userId = stringToCheck.substr(2, stringToCheck.length - 3);
     if (guild.members.keyArray().includes(userId)) {
         return true
     }
 }
 
-User.getIdFromMention = (mention) => mention.replace(/[<@!>]/g, '')
+UserHelper.getIdFromMention = (mention) => mention.replace(/[<@!>]/g, '')
 
-User.isValidRole = role => User.roles.includes(role)
+UserHelper.isValidRole = role => UserHelper.roles.includes(role)
 
-module.exports = User
+module.exports = UserHelper

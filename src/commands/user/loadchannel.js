@@ -1,5 +1,6 @@
 const User = require('../../helpers/user')
 const Command = require('../command')
+let logger = require('winston')
 const _ = require('lodash')
 
 /**
@@ -26,18 +27,27 @@ class LoadChannel extends Command {
      * @param {*} receivedMessage
      */
     handle(receivedMessage) {
-        let count = 0;
-        let users = receivedMessage.guild.members.filter(({
-            user
-        }) => {
-            if (!_.isEmpty(User.getUser(user.id))) {
-                return false
-            }
-            User.addUser(user.id)
-            count++
-            return true
+        let promises = [];
+
+        receivedMessage.guild.every(() => {
+            promises.push(async () => {
+                const user = await User.getUser(user.id)
+                if (!_.isEmpty(user)) {
+                    return false
+                }
+
+                await User.addUser(user.id);
+                return true
+            })
         })
-        receivedMessage.channel.send(`Loaded ` + count + ` users into the db`)
+
+        Promise.all(promises).then(values => {
+                const count = values.filter(v => v).length
+                receivedMessage.channel.send(`Loaded ` + count + ` users into the db`)
+            })
+            .catch(err => {
+                logger.error(err)
+            })
     }
 }
 

@@ -1,5 +1,6 @@
 const User = require('../../helpers/user')
 const Command = require('../command')
+let logger = require('winston')
 const {
     isValidMention,
     getIdFromMention
@@ -50,8 +51,12 @@ class SetRole extends Command {
         }
 
         User.setRole(param, user.id)
-
-        return receivedMessage.channel.send(`${user.tag}'s role has been set to ${param}`)
+            .then(() => {
+                receivedMessage.channel.send(`${user.tag}'s role has been set to ${param}`)
+            })
+            .catch(err => {
+                logger.error(err)
+            })
     }
 }
 

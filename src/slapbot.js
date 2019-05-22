@@ -1,12 +1,19 @@
-require('dotenv').config()
 const Discord = require('discord.js')
 const Chance = require('chance')
 const loadJsonFile = require('load-json-file')
 const UserCommand = require('./commands/user')
 const User = require('./helpers/user')
+const Knex = require('knex');
+const knexConfig = require('../knexfile');
+const {
+    Model
+} = require('objection');
+const knex = Knex(knexConfig[process.env.NODE_ENV]);
 let logger = require('winston')
 let whitelist = loadJsonFile.sync('./config/whitelist.json')
 let blacklist = loadJsonFile.sync('./config/blacklist.json')
+
+Model.knex(knex);
 
 /**
  * Slapbot class
@@ -49,14 +56,12 @@ class Slapbot {
 
             // Whitelist to prevent non whitelisted users using commands.
             //don't need to be whitelisted if you're the admin
-            if (this.whitelistEnabled && !whitelist.includes(receivedMessage.author.id) &&
-                !User.hasRole("admin", receivedMessage.author.id)) {
+            if (this.whitelistEnabled && !whitelist.includes(receivedMessage.author.id)) {
                 return
             }
             // Blacklist to prevent blacklisted users using commands.
             //can't be blacklisted if you're the admin
-            if (this.blacklistEnabled && blacklist.includes(receivedMessage.author.id) &&
-                !User.hasRole("admin", receivedMessage.author.id)) {
+            if (this.blacklistEnabled && blacklist.includes(receivedMessage.author.id)) {
                 return
             }
 
@@ -219,19 +224,24 @@ class Slapbot {
      * @param {*} receivedMessage - the received message to respond to.
      */
     nukeCommand(receivedMessage) {
-        // Split the message up in to pieces for each space/simulate an array
-        let splitCommand = receivedMessage.command.split(' ')
-
         //if there are no users mentioned, then return withot doing anything
         if (!receivedMessage.mentions.users.first())
             return
 
-        //if the person is not "nuker", then the bot is not going to do anything
-        if (User.hasRole('nuker', receivedMessage.author.id)) {
-            //other the bot will send the message to the channel and also react using one of the 3 emojis
-            receivedMessage.channel.send(receivedMessage.author.toString() + ` nukes ` + receivedMessage.mentions.members.first()).then((sentMessage) =>
-                sentMessage.react(this.chance.pickone(['💣', '🔥', '💥']))).then(console.log("Reacted")).catch(console.error);
-        }
+        User.hasRole("nuker", receivedMessage.author.id)
+            .then((userHasRole) => {
+                //if the person is not "nuker", then the bot is not going to do anything
+                if (userHasRole) {
+                    //other the bot will send the message to the channel and also react using one of the 3 emojis
+                    receivedMessage.channel.send(receivedMessage.author.toString() + ` nukes ` + receivedMessage.mentions.members.first())
+                        .then((sentMessage) =>
+                            sentMessage.react(this.chance.pickone(['💣', '🔥', '💥']))).then(console.log("Reacted"))
+                        .catch(console.error);
+                }
+            })
+            .catch(err => {
+                logger.error(err)
+            })
     }
 
     /**
@@ -240,9 +250,15 @@ class Slapbot {
      * @param {*} receivedMessage - the received message to respond to.
      */
     stopCommand(receivedMessage) {
-        if (User.hasRole('admin', receivedMessage.author.id)) {
-            this.stop()
-        }
+        User.hasRole("admin", receivedMessage.author.id)
+            .then((userHasRole) => {
+                if (userHasRole) {
+                    this.stop()
+                }
+            })
+            .catch(err => {
+                logger.error(err)
+            })
     }
 
     /**
@@ -250,10 +266,16 @@ class Slapbot {
      * @param {*} receivedMessage - The received message to respond to
      */
     toggleWhitelist(receivedMessage) {
-        if (User.hasRole("admin", receivedMessage.author.id)) {
-            this.whitelistEnabled = !this.whitelistEnabled;
-            receivedMessage.channel.send(`Whitelist ${this.whitelistEnabled ? "enabled" : "disabled"}`);
-        }
+        User.hasRole("admin", receivedMessage.author.id)
+            .then((userHasRole) => {
+                if (userHasRole) {
+                    this.whitelistEnabled = !this.whitelistEnabled;
+                    receivedMessage.channel.send(`Whitelist ${this.whitelistEnabled ? "enabled" : "disabled"}`);
+                }
+            })
+            .catch(err => {
+                logger.error(err)
+            })
     }
 
     /**
@@ -261,10 +283,16 @@ class Slapbot {
      * @param {*} receivedMessage - The received message to respond to
      */
     toggleBlacklist(receivedMessage) {
-        if (User.hasRole("admin", receivedMessage.author.id)) {
-            this.blacklistEnabled = !this.blacklistEnabled;
-            receivedMessage.channel.send(`Blacklist ${this.blacklistEnabled ? "enabled" : "disabled"}`)
-        }
+        User.hasRole("admin", receivedMessage.author.id)
+            .then((userHasRole) => {
+                if (userHasRole) {
+                    this.blacklistEnabled = !this.blacklistEnabled;
+                    receivedMessage.channel.send(`Blacklist ${this.blacklistEnabled ? "enabled" : "disabled"}`)
+                }
+            })
+            .catch(err => {
+                logger.error(err)
+            })
     }
 }
 

@@ -1,5 +1,6 @@
 const User = require('../../helpers/user')
 const Command = require('../command')
+let logger = require('winston')
 
 /**
  * Display all possible user roles
@@ -35,8 +36,13 @@ class Remove extends Command {
         const user = receivedMessage.guild.members.get(getIdFromMention(param)).user;
 
         User.removeUser(user.id)
+            .then(() => {
+                receivedMessage.channel.send(`Removed user ${user.id}`)
+            })
+            .catch(err => {
+                logger.error(err)
+            })
 
-        receivedMessage.channel.send(`Removed user ${user.id}`)
     }
 }
 

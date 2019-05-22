@@ -32,7 +32,7 @@ class List extends Command {
                 receivedMessage.channel.send(`Users;\n${users}`)
             })
             .catch(err => {
-                logger.error(err)
+                logger.error(err.message)
             })
     }
 

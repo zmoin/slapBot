@@ -1,5 +1,7 @@
 const _ = require('lodash')
 const User = require('../helpers/user')
+let logger = require('winston')
+
 /**
  * Command base class
  * Definition of how commands should be set up
@@ -59,7 +61,7 @@ class Command {
                 }
             })
             .catch(err => {
-                logger.error(err)
+                logger.error(err.message)
             })
     }
 

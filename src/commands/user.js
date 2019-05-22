@@ -1,7 +1,7 @@
 const Command = require('./command')
 const SetRole = require('./user/setrole')
 const Roles = require('./user/roles')
-const Remove = require('./user/roles')
+const Remove = require('./user/remove')
 const List = require('./user/list')
 const LoadChannel = require('./user/loadchannel')
 

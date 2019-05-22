@@ -135,7 +135,7 @@ class Slapbot {
                         }
                     })
                     .catch(err => {
-                        logger.error(err)
+                        logger.error(err.message)
                     })
                 break
         }
@@ -202,10 +202,10 @@ class Slapbot {
 
         if (args.length > 0) {
             receivedMessage.channel.send(receivedMessage.author.toString() + ` slaps ` + userToSlap + ` with ` + article + ` ${argString}`).then((sentMessage) =>
-                sentMessage.react(this.generateEmoji())).then(console.log("Reacted")).catch(console.error)
+                sentMessage.react(this.generateEmoji())).then(console.log("Reacted")).catch((err) => logger.error(err.message))
         } else
             receivedMessage.channel.send(receivedMessage.author.toString() + ` slaps ` + userToSlap).then((sentMessage) =>
-                sentMessage.react(this.generateEmoji())).then(console.log("Reacted")).catch(console.error)
+                sentMessage.react(this.generateEmoji())).then(console.log("Reacted")).catch((err) => logger.error(err.message))
 
     }
 
@@ -249,7 +249,7 @@ class Slapbot {
                 }
             })
             .catch(err => {
-                logger.error(err)
+                logger.error(err.message)
             })
     }
 
@@ -266,7 +266,7 @@ class Slapbot {
                 }
             })
             .catch(err => {
-                logger.error(err)
+                logger.error(err.message)
             })
     }
 
@@ -283,7 +283,7 @@ class Slapbot {
                 }
             })
             .catch(err => {
-                logger.error(err)
+                logger.error(err.message)
             })
     }
 
@@ -300,7 +300,7 @@ class Slapbot {
                 }
             })
             .catch(err => {
-                logger.error(err)
+                logger.error(err.message)
             })
     }
 }

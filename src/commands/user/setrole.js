@@ -1,5 +1,6 @@
 const User = require('../../helpers/user')
 const Command = require('../command')
+const _ = require('lodash')
 let logger = require('winston')
 const {
     isValidMention,
@@ -20,7 +21,7 @@ class SetRole extends Command {
         return 'set-role'
     }
 
-    static get roles() {
+    static get allowedRoles() {
         return ['admin']
     }
 
@@ -37,9 +38,20 @@ class SetRole extends Command {
         } = this.nextParam(receivedMessage))
 
         if (!isValidMention(param, receivedMessage.guild)) {
-            return receivedMessage.channel.send('Invalid mention')
+            receivedMessage.channel.send('Invalid mention')
+            return
         }
-        const user = receivedMessage.guild.members.get(getIdFromMention(param)).user;
+        const user = _.get(receivedMessage.guild.members.get(getIdFromMention(param)), 'user')
+
+        if (_.isEmpty(user)) {
+            receivedMessage.channel.send('Invalid mention')
+            return
+        }
+
+        if (user.bot) {
+            receivedMessage.channel.send("Bots can't have roles")
+            return
+        }
 
         ({
             param,
@@ -47,7 +59,8 @@ class SetRole extends Command {
         } = this.nextParam(receivedMessage))
 
         if (!User.isValidRole(param)) {
-            return receivedMessage.channel.send(`${param} is an invalid role`)
+            receivedMessage.channel.send(`${param} is an invalid role`)
+            return
         }
 
         User.setRole(param, user.id)
@@ -55,7 +68,7 @@ class SetRole extends Command {
                 receivedMessage.channel.send(`${user.tag}'s role has been set to ${param}`)
             })
             .catch(err => {
-                logger.error(err)
+                logger.error(err.message)
             })
     }
 }

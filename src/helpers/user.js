@@ -71,8 +71,11 @@ User.getUser = (id) => {
 }
 
 User.isValidMention = (stringToCheck, guild) => {
+    //if the userID DOES NOT starts with <@ and may have either of !&, has a number of 
+    //number of numeric digits and ends with >, then return false
     if (!/^<@[!&]?\d+>$/.test(stringToCheck))
         return false
+            //else test the userID 
     let userId = stringToCheck.substr(2, stringToCheck.length - 3);
     if (guild.members.keyArray().includes(userId)) {
         return true

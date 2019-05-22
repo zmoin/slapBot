@@ -1,3 +1,5 @@
+const _ = require('lodash')
+const User = reuqire('../helpers/user')
 /**
  * Command base class
  * Definition of how commands should be set up
@@ -5,14 +7,23 @@
 class Command {
 
     constructor(subCommands) {
-        this.subCommands = subCommands;
+        this.subCommands = subCommands
     }
 
     /**
+     * The command's string signature e.g. "/user" user would be the signature
      * abstract static member
      */
     static get signature() {
         throw new Error('Signature needs to be set')
+    }
+
+    /**
+     * The user roles allowed to use the command
+     * abstract static member
+     */
+    static get allowedRoles() {
+        return _.without(User.roles, 'banned')
     }
 
     /**
@@ -34,8 +45,10 @@ class Command {
     handleSubCommands(receivedMessage) {
         let commandKey = receivedMessage.command.split(' ')[0]
         receivedMessage.command = receivedMessage.command.substr(commandKey.length + 1)
-        if (this.subCommands.hasOwnProperty(commandKey)) {
+        if (this.subCommands.hasOwnProperty(commandKey) && this.subCommands[commandKey].allowed(receivedMessage.author)) {
             this.subCommands[commandKey].handle(receivedMessage)
+        } else {
+            receivedMessage.channel.send("You don't have permission to use this command")
         }
     }
 
@@ -46,6 +59,14 @@ class Command {
             param,
             receivedMessage
         }
+    }
+
+    allowed(author) {
+        const role = _.get(User.getUser(author.id), 'role', 'guest')
+        if (!_.includes(this.allowedRoles, role)) {
+            return false
+        }
+        return true;
     }
 }
 

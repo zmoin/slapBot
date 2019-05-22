@@ -1,22 +1,18 @@
 const User = require('../../helpers/user')
 const Command = require('../command')
-const {
-    isValidMention,
-    getIdFromMention
-} = require('../../helpers/user');
 
 /**
- * Set role for a user
+ * Display all possible user roles
  *
  */
-class SetRole extends Command {
+class Remove extends Command {
 
     constructor() {
         super({})
     }
 
     static get signature() {
-        return 'set-role'
+        return 'remove'
     }
 
     static get roles() {
@@ -24,8 +20,6 @@ class SetRole extends Command {
     }
 
     /**
-     * Switch between what command to run based in the first param after !
-     *
      * @param {*} receivedMessage
      */
     handle(receivedMessage) {
@@ -40,19 +34,10 @@ class SetRole extends Command {
         }
         const user = receivedMessage.guild.members.get(getIdFromMention(param)).user;
 
-        ({
-            param,
-            receivedMessage
-        } = this.nextParam(receivedMessage))
+        User.removeUser(user.id)
 
-        if (!User.isValidRole(param)) {
-            return receivedMessage.channel.send(`${param} is an invalid role`)
-        }
-
-        User.setRole(param, user.id)
-
-        return receivedMessage.channel.send(`${user.tag}'s role has been set to ${param}`)
+        receivedMessage.channel.send(`Removed user ${user.id}`)
     }
 }
 
-module.exports = SetRole
+module.exports = Remove

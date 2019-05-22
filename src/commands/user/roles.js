@@ -14,6 +14,7 @@ class Roles extends Command {
     static get signature() {
         return 'roles'
     }
+
     /**
      * Switch between what command to run based in the first param after !
      *

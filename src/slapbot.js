@@ -94,7 +94,7 @@ class Slapbot {
     commandSwitch(receivedMessage) {
         // Get command to use
         let commandKey = receivedMessage.command.split(' ')[0]
-            // Remove the command key from the string
+        // Remove the command key from the string
         receivedMessage.command = receivedMessage.command.substr(commandKey.length + 1)
 
         // Call the correct command
@@ -117,8 +117,10 @@ class Slapbot {
                 this.toggleBlacklist(receivedMessage);
                 break;
             default:
-                if (this.commands.hasOwnProperty(commandKey)) {
+                if (this.commands.hasOwnProperty(commandKey) && this.commands[commandKey].checkRoles(receivedMessage)) {
                     this.commands[commandKey].handle(receivedMessage)
+                } else {
+                    receivedMessage.channel.send("You don't have permission to use this command")
                 }
                 break;
         }
@@ -143,7 +145,7 @@ class Slapbot {
         console.log("STRING TO CHECK :" + stringToCheck + " TESTING :" + /^<@.\d+>$/.test(stringToCheck))
         console.log("USER ID USING: " + userId);
         console.log("GUILD MEMBER STATUS :" + guild.members.keyArray().includes(userId))
-            //if the guild contains the userID && the member is in the server, then return as valid
+        //if the guild contains the userID && the member is in the server, then return as valid
         if (/^<@.\d+>$/.test(stringToCheck) && guild.members.keyArray().includes(userId)) {
             retVal = true
         }
@@ -167,7 +169,7 @@ class Slapbot {
         //if this is NOT a valid user then return
         if (this.isValidMention(userToSlap, receivedMessage.guild) == false)
             return
-            // All other words are arguments/parameters/options for the command
+        // All other words are arguments/parameters/options for the command
         let args = splitCommand.slice(1)
         console.log(args)
 
@@ -177,7 +179,7 @@ class Slapbot {
         console.log("FIRST LETTER : " + vowel)
 
         let article = 'a'
-            //switch statement was acting weird (??) we could retry refactoring this
+        //switch statement was acting weird (??) we could retry refactoring this
         if (vowel == 'a' || vowel == 'e' || vowel == 'i' || vowel == 'o' || vowel == 'u')
             article = 'an'
         console.log("ARTICLE USED :" + article)

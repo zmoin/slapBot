@@ -1,6 +1,7 @@
 const Command = require('./command')
 const SetRole = require('./user/setrole')
 const Roles = require('./user/roles')
+const Remove = require('./user/roles')
 const List = require('./user/list')
 const LoadChannel = require('./user/loadchannel')
 
@@ -15,7 +16,8 @@ class User extends Command {
             [SetRole.signature]: new SetRole(),
             [Roles.signature]: new Roles(),
             [List.signature]: new List(),
-            [LoadChannel.signature]: new LoadChannel()
+            [LoadChannel.signature]: new LoadChannel(),
+            [Remove.signature]: new Remove()
         })
     }
 

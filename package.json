@@ -9,7 +9,7 @@
         "dotenv": "^7.0.0",
         "knex": "^0.16.5",
         "load-json-file": "^5.2.0",
-        "lodash": "^4.17.11",
+        "lodash": "^4.17.19",
         "objection": "^1.6.9",
         "pg": "^7.11.0",
         "winston": "^3.2.1"

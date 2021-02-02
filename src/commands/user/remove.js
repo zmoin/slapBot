@@ -1,5 +1,7 @@
 const User = require('../../helpers/user')
 const Command = require('../command')
+const _ = require('lodash')
+let logger = require('winston')
 
 /**
  * Display all possible user roles
@@ -15,7 +17,7 @@ class Remove extends Command {
         return 'remove'
     }
 
-    static get roles() {
+    static get allowedRoles() {
         return ['admin']
     }
 
@@ -29,14 +31,30 @@ class Remove extends Command {
             receivedMessage
         } = this.nextParam(receivedMessage))
 
-        if (!isValidMention(param, receivedMessage.guild)) {
-            return receivedMessage.channel.send('Invalid mention')
+        if (!User.isValidMention(param, receivedMessage.guild)) {
+            receivedMessage.channel.send('Invalid mention')
+            return
         }
-        const user = receivedMessage.guild.members.get(getIdFromMention(param)).user;
+        const user = _.get(receivedMessage.guild.members.get(User.getIdFromMention(param)), 'user')
+
+        if (_.isEmpty(user)) {
+            receivedMessage.channel.send('Invalid mention')
+            return
+        }
+
+        if (user.bot) {
+            receivedMessage.channel.send("Bots can't have roles")
+            return
+        }
 
         User.removeUser(user.id)
+            .then(() => {
+                receivedMessage.channel.send(`Removed user ${user.username}`)
+            })
+            .catch(err => {
+                logger.error(err.message)
+            })
 
-        receivedMessage.channel.send(`Removed user ${user.id}`)
     }
 }
 

@@ -1,5 +1,7 @@
 const _ = require('lodash')
-const User = reuqire('../helpers/user')
+const User = require('../helpers/user')
+let logger = require('winston')
+
 /**
  * Command base class
  * Definition of how commands should be set up
@@ -45,11 +47,22 @@ class Command {
     handleSubCommands(receivedMessage) {
         let commandKey = receivedMessage.command.split(' ')[0]
         receivedMessage.command = receivedMessage.command.substr(commandKey.length + 1)
-        if (this.subCommands.hasOwnProperty(commandKey) && this.subCommands[commandKey].allowed(receivedMessage.author)) {
-            this.subCommands[commandKey].handle(receivedMessage)
-        } else {
-            receivedMessage.channel.send("You don't have permission to use this command")
+
+        if (!this.subCommands.hasOwnProperty(commandKey)) {
+            return receivedMessage.channel.send("Command doesn't exist")
         }
+
+        this.subCommands[commandKey].allowed(receivedMessage.author)
+            .then((allowed) => {
+                if (allowed) {
+                    this.subCommands[commandKey].handle(receivedMessage)
+                } else {
+                    receivedMessage.channel.send("You don't have permission to use this command")
+                }
+            })
+            .catch(err => {
+                logger.error(err.message)
+            })
     }
 
     nextParam(receivedMessage) {
@@ -61,12 +74,13 @@ class Command {
         }
     }
 
-    allowed(author) {
-        const role = _.get(User.getUser(author.id), 'role', 'guest')
-        if (!_.includes(this.allowedRoles, role)) {
+    async allowed(author) {
+        const user = await User.getUser(author.id)
+        const role = _.get(user, 'role', 'guest')
+        if (!_.includes(this.constructor.allowedRoles, role)) {
             return false
         }
-        return true;
+        return true
     }
 }
 

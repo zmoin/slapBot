@@ -1,12 +1,19 @@
-require('dotenv').config()
 const Discord = require('discord.js')
 const Chance = require('chance')
 const loadJsonFile = require('load-json-file')
 const UserCommand = require('./commands/user')
 const User = require('./helpers/user')
+const Knex = require('knex')
+const knexConfig = require('../knexfile')
+const {
+    Model
+} = require('objection')
+const knex = Knex(knexConfig[process.env.NODE_ENV])
 let logger = require('winston')
 let whitelist = loadJsonFile.sync('./config/whitelist.json')
 let blacklist = loadJsonFile.sync('./config/blacklist.json')
+
+Model.knex(knex)
 
 /**
  * Slapbot class
@@ -49,14 +56,12 @@ class Slapbot {
 
             // Whitelist to prevent non whitelisted users using commands.
             //don't need to be whitelisted if you're the admin
-            if (this.whitelistEnabled && !whitelist.includes(receivedMessage.author.id) &&
-                !User.hasRole("admin", receivedMessage.author.id)) {
+            if (this.whitelistEnabled && !whitelist.includes(receivedMessage.author.id)) {
                 return
             }
             // Blacklist to prevent blacklisted users using commands.
             //can't be blacklisted if you're the admin
-            if (this.blacklistEnabled && blacklist.includes(receivedMessage.author.id) &&
-                !User.hasRole("admin", receivedMessage.author.id)) {
+            if (this.blacklistEnabled && blacklist.includes(receivedMessage.author.id)) {
                 return
             }
 
@@ -108,21 +113,31 @@ class Slapbot {
                 break
                 //only available to the admin
             case 'stop':
-                this.stopCommand(receivedMessage);
-                break;
+                this.stopCommand(receivedMessage)
+                break
             case 'whitelist':
-                this.toggleWhitelist(receivedMessage);
-                break;
+                this.toggleWhitelist(receivedMessage)
+                break
             case 'blacklist':
-                this.toggleBlacklist(receivedMessage);
-                break;
+                this.toggleBlacklist(receivedMessage)
+                break
             default:
-                if (this.commands.hasOwnProperty(commandKey) && this.commands[commandKey].checkRoles(receivedMessage)) {
-                    this.commands[commandKey].handle(receivedMessage)
-                } else {
-                    receivedMessage.channel.send("You don't have permission to use this command")
+                if (!this.commands.hasOwnProperty(commandKey)) {
+                    return receivedMessage.channel.send("Command doesn't exist")
                 }
-                break;
+
+                this.commands[commandKey].allowed(receivedMessage.author)
+                    .then((allowed) => {
+                        if (allowed) {
+                            this.commands[commandKey].handle(receivedMessage)
+                        } else {
+                            receivedMessage.channel.send("You don't have permission to use this command")
+                        }
+                    })
+                    .catch(err => {
+                        logger.error(err.message)
+                    })
+                break
         }
     }
 
@@ -133,9 +148,9 @@ class Slapbot {
      * @param {Guild} guild - Guild/Server to check the mention against
      */
     isValidMention(stringToCheck, guild) {
-        let retVal = false;
+        let retVal = false
 
-        let userId = stringToCheck.substr(2, stringToCheck.length - 3);
+        let userId = stringToCheck.substr(2, stringToCheck.length - 3)
         //checked for the ! and also added an extra space for a character in the regExp
         //! in front of the userName means the user has a nickname in the channel
         if (userId.startsWith('!')) {
@@ -143,7 +158,7 @@ class Slapbot {
         }
 
         console.log("STRING TO CHECK :" + stringToCheck + " TESTING :" + /^<@.\d+>$/.test(stringToCheck))
-        console.log("USER ID USING: " + userId);
+        console.log("USER ID USING: " + userId)
         console.log("GUILD MEMBER STATUS :" + guild.members.keyArray().includes(userId))
         //if the guild contains the userID && the member is in the server, then return as valid
         if (/^<@.\d+>$/.test(stringToCheck) && guild.members.keyArray().includes(userId)) {
@@ -152,8 +167,7 @@ class Slapbot {
 
         console.log("RETURNING : " + retVal)
 
-        return retVal;
-
+        return retVal
     }
 
     /**
@@ -165,7 +179,7 @@ class Slapbot {
         let splitCommand = receivedMessage.command.split(' ')
 
         // Check if the first word after slap is the user to slap
-        let userToSlap = splitCommand[0];
+        let userToSlap = splitCommand[0]
         //if this is NOT a valid user then return
         if (this.isValidMention(userToSlap, receivedMessage.guild) == false)
             return
@@ -188,10 +202,10 @@ class Slapbot {
 
         if (args.length > 0) {
             receivedMessage.channel.send(receivedMessage.author.toString() + ` slaps ` + userToSlap + ` with ` + article + ` ${argString}`).then((sentMessage) =>
-                sentMessage.react(this.generateEmoji())).then(console.log("Reacted")).catch(console.error);
+                sentMessage.react(this.generateEmoji())).then(console.log("Reacted")).catch((err) => logger.error(err.message))
         } else
             receivedMessage.channel.send(receivedMessage.author.toString() + ` slaps ` + userToSlap).then((sentMessage) =>
-                sentMessage.react(this.generateEmoji())).then(console.log("Reacted")).catch(console.error);
+                sentMessage.react(this.generateEmoji())).then(console.log("Reacted")).catch((err) => logger.error(err.message))
 
     }
 
@@ -219,19 +233,24 @@ class Slapbot {
      * @param {*} receivedMessage - the received message to respond to.
      */
     nukeCommand(receivedMessage) {
-        // Split the message up in to pieces for each space/simulate an array
-        let splitCommand = receivedMessage.command.split(' ')
-
         //if there are no users mentioned, then return withot doing anything
         if (!receivedMessage.mentions.users.first())
             return
 
-        //if the person is not "nuker", then the bot is not going to do anything
-        if (User.hasRole('nuker', receivedMessage.author.id)) {
-            //other the bot will send the message to the channel and also react using one of the 3 emojis
-            receivedMessage.channel.send(receivedMessage.author.toString() + ` nukes ` + receivedMessage.mentions.members.first()).then((sentMessage) =>
-                sentMessage.react(this.chance.pickone(['💣', '🔥', '💥']))).then(console.log("Reacted")).catch(console.error);
-        }
+        User.hasRole("nuker", receivedMessage.author.id)
+            .then((userHasRole) => {
+                //if the person is not "nuker", then the bot is not going to do anything
+                if (userHasRole) {
+                    //other the bot will send the message to the channel and also react using one of the 3 emojis
+                    receivedMessage.channel.send(receivedMessage.author.toString() + ` nukes ` + receivedMessage.mentions.members.first())
+                        .then((sentMessage) =>
+                            sentMessage.react(this.chance.pickone(['💣', '🔥', '💥']))).then(console.log("Reacted"))
+                        .catch(console.error)
+                }
+            })
+            .catch(err => {
+                logger.error(err.message)
+            })
     }
 
     /**
@@ -240,9 +259,15 @@ class Slapbot {
      * @param {*} receivedMessage - the received message to respond to.
      */
     stopCommand(receivedMessage) {
-        if (User.hasRole('admin', receivedMessage.author.id)) {
-            this.stop()
-        }
+        User.hasRole("admin", receivedMessage.author.id)
+            .then((userHasRole) => {
+                if (userHasRole) {
+                    this.stop()
+                }
+            })
+            .catch(err => {
+                logger.error(err.message)
+            })
     }
 
     /**
@@ -250,10 +275,16 @@ class Slapbot {
      * @param {*} receivedMessage - The received message to respond to
      */
     toggleWhitelist(receivedMessage) {
-        if (User.hasRole("admin", receivedMessage.author.id)) {
-            this.whitelistEnabled = !this.whitelistEnabled;
-            receivedMessage.channel.send(`Whitelist ${this.whitelistEnabled ? "enabled" : "disabled"}`);
-        }
+        User.hasRole("admin", receivedMessage.author.id)
+            .then((userHasRole) => {
+                if (userHasRole) {
+                    this.whitelistEnabled = !this.whitelistEnabled
+                    receivedMessage.channel.send(`Whitelist ${this.whitelistEnabled ? "enabled" : "disabled"}`)
+                }
+            })
+            .catch(err => {
+                logger.error(err.message)
+            })
     }
 
     /**
@@ -261,10 +292,16 @@ class Slapbot {
      * @param {*} receivedMessage - The received message to respond to
      */
     toggleBlacklist(receivedMessage) {
-        if (User.hasRole("admin", receivedMessage.author.id)) {
-            this.blacklistEnabled = !this.blacklistEnabled;
-            receivedMessage.channel.send(`Blacklist ${this.blacklistEnabled ? "enabled" : "disabled"}`)
-        }
+        User.hasRole("admin", receivedMessage.author.id)
+            .then((userHasRole) => {
+                if (userHasRole) {
+                    this.blacklistEnabled = !this.blacklistEnabled
+                    receivedMessage.channel.send(`Blacklist ${this.blacklistEnabled ? "enabled" : "disabled"}`)
+                }
+            })
+            .catch(err => {
+                logger.error(err.message)
+            })
     }
 }
 

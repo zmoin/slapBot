@@ -7,7 +7,7 @@
         "chance": "^1.0.18",
         "discord.js": "^11.5.0",
         "dotenv": "^7.0.0",
-        "knex": "^0.19.5",
+        "knex": "^2.4.0",
         "load-json-file": "^5.2.0",
         "lodash": "^4.17.19",
         "objection": "^1.6.9",
